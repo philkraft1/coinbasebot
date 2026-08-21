@@ -144,7 +144,10 @@ npx awal x402 bazaar search "crypto news"
 - **MCP tools missing** — Confirm `~/.payments-mcp/bundle.js` (or `%USERPROFILE%\.payments-mcp\bundle.js`) exists, then restart the client.
 - **Wallet UI never opens** — The companion app is Electron; you need a desktop session. Run `npm run wallet:show`.
 - **OTP expired** — `npx awal auth login kraftcoding@gmail.com` and use the newest email code.
-- **Git push 403 to Origin** — This cloud token cannot write `ivorycrowncollective/coinbasebot`; push from a machine with repo access.
+- **Git push 403 to Origin** — This cloud agent token cannot create or write Origin repos (`repository_access_denied`). Workarounds:
+  1. Download `coinbasebot.bundle` or `coinbasebot-working-tree.zip` from the agent artifacts, then on your PC: `bash scripts/import-bundle.sh coinbasebot.bundle` and `bash scripts/push-from-your-pc.sh` after `origin auth login`.
+  2. Or create a GitHub repo from your PC: `npm run publish:github` (needs `gh auth login`).
+  3. Cursor on Windows: copy [config/cursor.mcp.windows.json](config/cursor.mcp.windows.json) over `%USERPROFILE%\.cursor\mcp.json` (uses `C:\Users\phsok\.payments-mcp\bundle.js`).
 
 Official docs: [Agentic Wallet CLI](https://docs.cdp.coinbase.com/agentic-wallet/cli/quickstart), [MCP quickstart](https://docs.cdp.coinbase.com/agentic-wallet/mcp/quickstart), [trade skill](https://docs.cdp.coinbase.com/agentic-wallet/cli/skills/trade).
 
