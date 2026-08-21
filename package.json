@@ -2,7 +2,7 @@
   "name": "coinbase-payments-mcp",
   "private": true,
   "version": "1.0.0",
-  "description": "Cursor-ready setup for Coinbase Payments MCP — agentic wallets, onramps, and x402 payments.",
+  "description": "Cursor and Claude Code setup for Coinbase Agentic Wallet — Base swaps, onramp, and x402 payments.",
   "repository": {
     "type": "git",
     "url": "https://origin.cursor.com/ivorycrowncollective/coinbasebot.git"
@@ -16,6 +16,10 @@
     "mcp:install": "npx --yes @coinbase/payments-mcp install --client other --no-auto-config",
     "mcp:status": "npx --yes @coinbase/payments-mcp status",
     "mcp:uninstall": "npx --yes @coinbase/payments-mcp uninstall",
+    "skills:install": "npx --yes skills add coinbase/agentic-wallet-skills --agent claude-code -y",
+    "wallet:status": "npx --yes awal status",
+    "wallet:balance": "npx --yes awal balance",
+    "wallet:show": "npx --yes awal show",
     "publish:github": "bash scripts/publish-to-github.sh"
   }
 }

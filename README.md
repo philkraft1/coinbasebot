@@ -1,155 +1,156 @@
-# Coinbase Payments MCP
+# Coinbase Agentic Wallet (coinbasebot)
 
-This repo wires [Coinbase Payments MCP](https://github.com/coinbase/payments-mcp) into Cursor so an agent can use an embedded wallet, onramp USDC, and pay for [x402](https://docs.cdp.coinbase.com/x402/welcome) services on Base, Polygon, and Solana.
+This repo wires a Coinbase **Agentic Wallet** into Cursor and Claude Code so an agent can hold USDC, swap on Base, and pay for [x402](https://docs.cdp.coinbase.com/x402/welcome) APIs.
 
-No API keys or seed phrases. You sign in with email, set spending limits, and the agent pays for APIs from that wallet.
+No Coinbase API keys or seed phrases. You sign in with email, set spending limits, and the agent operates inside those limits.
+
+## Coinbase.com vs this wallet
+
+They are **not the same account**.
+
+| | Coinbase.com app / exchange | Agentic Wallet (this project) |
+| --- | --- | --- |
+| Where it lives | Your Coinbase login | Embedded wallet tied to an email (here: `kraftcoding@gmail.com`) |
+| How you see it | Coinbase app | `npx awal show` or “Show me my wallet” |
+| Trading | Coinbase Advanced Trade | `npx awal trade` on **Base** only |
+| Balance you funded | Stays $0 unless you withdraw there | USDC sent to the Base receive address |
+
+**Base (EVM) receive address:** `0xD10d7eA8B847110f3bbf71781ABefbac01517b82`
+
+**Solana receive address:** `HCCQTfNtw7dUCB84VCtpEbkAuztLH3B1eUC5Kd9v3Raf`
+
+If Coinbase.com shows $0, check this wallet instead (`npm run wallet:balance`).
+
+## What each client can do
+
+| Client | How it connects | Pay for APIs (x402) | Swap / trade tokens |
+| --- | --- | --- | --- |
+| Claude Desktop | Payments MCP only | Yes | No |
+| Claude Code / Cursor | MCP **plus** [`.claude/skills/agentic-wallet`](.claude/skills/agentic-wallet) | Yes | Yes (`npx awal trade`) |
+
+Trading is **Base mainnet only**. Example: `npx awal trade 1 usdc eth`.
+
+Do **not** turn on an unattended looping strategy. First live action is a **$1 USDC → ETH** smoke test.
 
 ## Prerequisites
 
 - Node.js 22 or newer (`node -v`)
 - npm
-- Cursor (or another stdio MCP client)
+- Claude Code (for swaps) and/or Cursor
+- Claude Desktop only if you want x402 payments in the Desktop app
 
-## Install
+## Install on Windows (Claude Code)
 
-From this repo:
+Run these on the PC where Claude Code is installed. Use **Windows PowerShell** for the MCP installer (Claude Desktop/Code are Windows apps). Origin CLI clone can stay in WSL.
 
-```bash
-npx @coinbase/payments-mcp
+```powershell
+# From this repo
+npx @coinbase/payments-mcp --client claude-code --auto-config
+npx skills add coinbase/agentic-wallet-skills --agent claude-code -y
+
+npx awal auth login kraftcoding@gmail.com
+npx awal auth verify <6-digit-code>
+npx awal show
 ```
 
-The installer downloads the MCP server and companion wallet app into `~/.payments-mcp` (currently **2.12.1**).
+In the wallet UI, set spending limits **before** Claude trades:
 
-If the installer asks which client to configure, choose **Other** (Cursor). You can skip prompts with:
+- **Max per call:** `$1`
+- **Max per session:** `$5`
 
-```bash
-npx @coinbase/payments-mcp install --client other --no-auto-config
-```
+Claude cannot raise these. Restart Claude Code after install.
 
-Or use the npm scripts in this repo:
-
-```bash
-npm run mcp:install
-npm run mcp:status
-```
-
-Then restart Cursor so it loads `.cursor/mcp.json`.
-
-### What this repo adds
-
-| File | Purpose |
-| --- | --- |
-| `.cursor/mcp.json` | Points Cursor at the Payments MCP server |
-| `scripts/run-payments-mcp.mjs` | Starts `~/.payments-mcp/bundle.js`, with a clear error if it is not installed |
-
-Manual equivalent (any MCP client):
-
-```json
-{
-  "mcpServers": {
-    "payments-mcp": {
-      "command": "node",
-      "args": ["/YOUR/HOME/.payments-mcp/bundle.js"]
-    }
-  }
-}
-```
-
-Replace the path with the **Install Path** printed by `npx @coinbase/payments-mcp status`.
-
-## First-time wallet setup
-
-In Cursor Agent chat, ask:
-
-```
-Show me my wallet
-```
-
-That opens the companion wallet UI:
-
-1. Enter your email and complete the OTP.
-2. A new user gets an embedded wallet; a returning user is signed back in.
-3. Click **Fund** and use Coinbase Onramp, or **Receive** and send USDC to the address.
-4. Open the spending-limit tracker and set:
-   - **Max per call** (for example `$0.05`)
-   - **Max per session** (for example `$5.00`)
-
-Only you can change those limits, transfer funds, or onramp. The agent can pay for x402 services within the limits you set.
-
-## What to ask the agent
+### Smoke-test prompts
 
 ```
 What's my wallet balance?
 ```
 
 ```
-What x402 services are available for crypto data?
+Swap $1 USDC for ETH on Base
 ```
 
-```
-Get the latest crypto and AI news
-```
+If the swap is over your per-call cap, it is blocked. If the balance is 0, you funded Coinbase.com or the wrong chain.
 
-```
-What are the trending crypto tokens and what's the latest news about them?
-```
+## Claude Desktop (x402 only, no swaps)
 
-Behind those prompts the agent uses:
+In **Windows PowerShell** (not this Linux cloud VM, not WSL):
 
-**Wallet**
-
-- Wallet address
-- Token balances
-- Sign-in status
-- Open the wallet / Bazaar UI
-
-**Payments**
-
-- List x402 Bazaar services
-- Fetch a service’s docs and price
-- Check payment requirements without paying
-- Call a paid API and settle in USDC
-
-Search the Bazaar from the terminal as well:
-
-```bash
-npx awal x402 bazaar search "crypto news"
-npx awal x402 bazaar list --network solana
-```
-
-## Other clients
-
-The same install works with Claude Desktop, Claude Code, Codex CLI, and Gemini CLI:
-
-```bash
+```powershell
 npx @coinbase/payments-mcp --client claude --auto-config
-npx @coinbase/payments-mcp --client claude-code --auto-config
-npx @coinbase/payments-mcp --client codex --auto-config
-npx @coinbase/payments-mcp --client gemini --auto-config
+```
+
+If auto-config does not write the file, edit `%APPDATA%\Claude\claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "payments-mcp": {
+      "command": "node",
+      "args": ["%USERPROFILE%\\.payments-mcp\\bundle.js"]
+    }
+  }
+}
+```
+
+If `%USERPROFILE%` does not expand in your Claude build, use the absolute path, for example `C:\\Users\\YOUR_WINDOWS_USERNAME\\.payments-mcp\\bundle.js`.
+
+Do not paste Linux paths (`/home/ubuntu/...`) into Claude on Windows. Fully quit and reopen Claude Desktop, then ask: **Show me my wallet**.
+
+## Cursor (this repo)
+
+[`.cursor/mcp.json`](.cursor/mcp.json) starts Payments MCP via [`scripts/run-payments-mcp.mjs`](scripts/run-payments-mcp.mjs). MCP still cannot swap; Cursor uses the skill + `awal` for trades.
+
+```bash
+npm run mcp:install
+npm run wallet:status
+npm run wallet:balance
+npm run wallet:show
+```
+
+## First-time funding
+
+1. `npm run wallet:show` (or “Show me my wallet”).
+2. Sign in with email OTP (`kraftcoding@gmail.com` for the funded wallet).
+3. **Fund** (Coinbase Onramp) or **Receive** and send **USDC on Base** to the EVM address above.
+4. Set max per call `$1` and max per session `$5`.
+
+## npm scripts
+
+```bash
+npm run mcp:install      # install Payments MCP into ~/.payments-mcp
+npm run mcp:status
+npm run skills:install   # refresh .claude/skills/agentic-wallet
+npm run wallet:status
+npm run wallet:balance
+npm run wallet:show
 ```
 
 ## Commands
 
 ```bash
-npx @coinbase/payments-mcp              # install (default)
-npx @coinbase/payments-mcp status       # check version and path
-npx @coinbase/payments-mcp install --force
-npx @coinbase/payments-mcp install --verbose
-npx @coinbase/payments-mcp uninstall
+npx @coinbase/payments-mcp
+npx @coinbase/payments-mcp --client claude-code --auto-config
+npx awal status
+npx awal balance
+npx awal trade 1 usdc eth
+npx awal x402 bazaar search "crypto news"
 ```
 
 ## Troubleshooting
 
-- **MCP tools missing in Cursor** — Confirm `~/.payments-mcp/bundle.js` exists, then fully restart Cursor.
-- **Wallet UI never opens** — Ask “Show me my wallet” again. The server is an Electron app; a desktop session is required.
-- **Installer says Payments MCP is running** — Close other MCP clients and retry, or choose Continue anyway if you are sure it is a false positive.
-- **Permission or “command not found”** — Confirm `node` and `npm` are on your PATH (`node -v`, `npm -v`).
+- **Coinbase app shows $0** — Funds are in the Agentic Wallet on Base, not the exchange.
+- **Claude Desktop cannot swap** — Install Claude Code and the agentic-wallet skill.
+- **MCP tools missing** — Confirm `~/.payments-mcp/bundle.js` (or `%USERPROFILE%\.payments-mcp\bundle.js`) exists, then restart the client.
+- **Wallet UI never opens** — The companion app is Electron; you need a desktop session. Run `npm run wallet:show`.
+- **OTP expired** — `npx awal auth login kraftcoding@gmail.com` and use the newest email code.
+- **Git push 403 to Origin** — This cloud token cannot write `ivorycrowncollective/coinbasebot`; push from a machine with repo access.
 
-Official docs: [Agentic Wallet MCP quickstart](https://docs.cdp.coinbase.com/agentic-wallet/mcp/quickstart).
+Official docs: [Agentic Wallet CLI](https://docs.cdp.coinbase.com/agentic-wallet/cli/quickstart), [MCP quickstart](https://docs.cdp.coinbase.com/agentic-wallet/mcp/quickstart), [trade skill](https://docs.cdp.coinbase.com/agentic-wallet/cli/skills/trade).
 
 ## Repositories
 
-**Origin (this project):** [ivorycrowncollective/coinbasebot](https://cursor.com/codebase/ivorycrowncollective/coinbasebot) — private. Clone with Origin CLI in WSL:
+**Origin:** [ivorycrowncollective/coinbasebot](https://cursor.com/codebase/ivorycrowncollective/coinbasebot) — private. Clone in WSL:
 
 ```bash
 curl -fsSL https://downloads.cursor.com/origin/install.sh | sh
@@ -157,14 +158,16 @@ origin auth login
 origin repo clone ivorycrowncollective/coinbasebot
 ```
 
-**GitHub:** this checkout is ready to publish with GitHub CLI. After `gh auth login` on a machine that has `gh`:
+If `origin` is not found:
 
 ```bash
-# Creates a private github.com repo named coinbasebot under your account and pushes
-npm run publish:github
-
-# Or choose owner/name and visibility
-bash scripts/publish-to-github.sh ivorycrowncollective/coinbasebot private
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-That adds a `github` remote and pushes `main`. You can make the GitHub repo public later in GitHub settings.
+**GitHub:** after `gh auth login`:
+
+```bash
+npm run publish:github
+bash scripts/publish-to-github.sh ivorycrowncollective/coinbasebot private
+```
