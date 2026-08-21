@@ -146,3 +146,25 @@ npx @coinbase/payments-mcp uninstall
 - **Permission or “command not found”** — Confirm `node` and `npm` are on your PATH (`node -v`, `npm -v`).
 
 Official docs: [Agentic Wallet MCP quickstart](https://docs.cdp.coinbase.com/agentic-wallet/mcp/quickstart).
+
+## Repositories
+
+**Origin (this project):** [ivorycrowncollective/coinbasebot](https://cursor.com/codebase/ivorycrowncollective/coinbasebot) — private. Clone with Origin CLI in WSL:
+
+```bash
+curl -fsSL https://downloads.cursor.com/origin/install.sh | sh
+origin auth login
+origin repo clone ivorycrowncollective/coinbasebot
+```
+
+**GitHub:** this checkout is ready to publish with GitHub CLI. After `gh auth login` on a machine that has `gh`:
+
+```bash
+# Creates a private github.com repo named coinbasebot under your account and pushes
+npm run publish:github
+
+# Or choose owner/name and visibility
+bash scripts/publish-to-github.sh ivorycrowncollective/coinbasebot private
+```
+
+That adds a `github` remote and pushes `main`. You can make the GitHub repo public later in GitHub settings.

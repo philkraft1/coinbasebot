@@ -3,6 +3,11 @@
   "private": true,
   "version": "1.0.0",
   "description": "Cursor-ready setup for Coinbase Payments MCP — agentic wallets, onramps, and x402 payments.",
+  "repository": {
+    "type": "git",
+    "url": "https://origin.cursor.com/ivorycrowncollective/coinbasebot.git"
+  },
+  "homepage": "https://cursor.com/codebase/ivorycrowncollective/coinbasebot",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -10,6 +15,7 @@
   "scripts": {
     "mcp:install": "npx --yes @coinbase/payments-mcp install --client other --no-auto-config",
     "mcp:status": "npx --yes @coinbase/payments-mcp status",
-    "mcp:uninstall": "npx --yes @coinbase/payments-mcp uninstall"
+    "mcp:uninstall": "npx --yes @coinbase/payments-mcp uninstall",
+    "publish:github": "bash scripts/publish-to-github.sh"
   }
 }
