@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "payments-mcp": {
+      "command": "node",
+      "args": ["scripts/run-payments-mcp.mjs"]
+    }
+  }
+}
