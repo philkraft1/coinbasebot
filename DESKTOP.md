@@ -1,5 +1,24 @@
 # Transfer this project to `Desktop\coinbasebot`
 
+This cloud agent cannot write to your Windows Desktop. On your PC, put the
+whole project in `C:\Users\phsok\Desktop\coinbasebot` with one of these:
+
+From the clone you already have (`C:\Users\phsok\coinbasebot`):
+
+```bat
+cd %USERPROFILE%\coinbasebot
+git pull https://github.com/philkraft1/coinbasebot.git main
+copy-to-desktop.cmd
+```
+
+Or a fresh clone onto the Desktop:
+
+```bat
+git clone https://github.com/philkraft1/coinbasebot.git %USERPROFILE%\Desktop\coinbasebot
+cd /d %USERPROFILE%\Desktop\coinbasebot
+npm install
+```
+
 Use whichever folder already has the clone:
 
 - `C:\Users\phsok\Desktop\coinbasebot`

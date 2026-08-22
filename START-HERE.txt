@@ -1,0 +1,33 @@
+IvoryCrown / coinbasebot
+========================
+
+This folder is the project. Open it on your PC:
+
+  C:\Users\phsok\Desktop\coinbasebot
+
+This cloud agent cannot write to your Desktop. If you are still in
+C:\Users\phsok\coinbasebot, double-click copy-to-desktop.cmd or run:
+
+  cd %USERPROFILE%\coinbasebot
+  git pull https://github.com/philkraft1/coinbasebot.git main
+  copy-to-desktop.cmd
+
+Or clone straight to the Desktop:
+
+  git clone https://github.com/philkraft1/coinbasebot.git %USERPROFILE%\Desktop\coinbasebot
+  cd /d %USERPROFILE%\Desktop\coinbasebot
+  npm install
+
+Then, in Command Prompt (not bare npx awal):
+
+  cd /d %USERPROFILE%\Desktop\coinbasebot
+  node scripts\run-awal.mjs auth login kraftcoding@gmail.com
+  node scripts\run-awal.mjs auth verify YOUR_CODE
+  node scripts\run-awal.mjs show
+
+Set max per call $1 and max per session $5.
+
+Funded Base address (kraftcoding, not phsokr1):
+  0xD10d7eA8B847110f3bbf71781ABefbac01517b82
+
+In Cursor: File → Open Folder → Desktop\coinbasebot
