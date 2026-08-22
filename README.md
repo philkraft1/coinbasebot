@@ -6,32 +6,31 @@ This repo wires a Coinbase **Agentic Wallet** into Cursor and Claude Code so an 
 
 No Coinbase API keys or seed phrases. You sign in with email, set spending limits, and the agent operates inside those limits.
 
-## Go live on your Windows PC
+## Transfer to `Desktop\coinbasebot`
 
-This is the remaining work. The wallet already holds **~12 USDC + 0.0004 ETH on Base**. Claude on your machine is not wired until you do this.
+Your working directory on this PC is `C:\Users\phsok\Desktop\coinbasebot`.
 
-1. Install [Node.js 22+](https://nodejs.org) for Windows. In **PowerShell**: `node -v`
-2. Clone (public, no login):
+This cloud agent cannot write there. On **your Windows PC**, in **PowerShell**, run:
 
 ```powershell
-git clone https://github.com/philkraft1/coinbasebot.git
-cd coinbasebot
+cd $env:USERPROFILE\Desktop\coinbasebot
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/philkraft1/coinbasebot/main/scripts/install-on-desktop.ps1 | iex
 ```
 
-3. Still in **PowerShell** (not WSL):
+That clones this repo into that folder, installs Payments MCP + Agentic Wallet skills, and **merges** `payments-mcp` into your existing Claude Desktop and Cursor configs (your other MCP servers stay). Details: [DESKTOP.md](DESKTOP.md).
+
+Then sign in and set limits:
 
 ```powershell
-npx @coinbase/payments-mcp --client claude-code --auto-config
-npx skills add coinbase/agentic-wallet-skills --agent claude-code -y
 npx awal auth login kraftcoding@gmail.com
+npx awal auth verify <6-digit-code>
+npx awal show
 ```
 
-4. Enter the email OTP. Same wallet as this project.
-5. `npx awal show` → set **max per call $1** and **max per session $5**.
-6. Copy [config/cursor.mcp.windows.json](config/cursor.mcp.windows.json) to `C:\Users\phsok\.cursor\mcp.json`. Restart Cursor and Claude Code.
-7. Ask: “What’s my wallet balance?” then optionally “Swap $1 USDC for ETH on Base.”
+Set **max per call $1** and **max per session $5**. Fully quit Claude Desktop and Cursor. Open `C:\Users\phsok\Desktop\coinbasebot` as the workspace.
 
-Do not start an unattended trading loop. Claude Desktop alone cannot swap.
+The wallet already holds **~12 USDC + 0.0004 ETH on Base**. Do not start an unattended trading loop. Claude Desktop alone cannot swap.
 
 ## Coinbase.com vs this wallet
 
