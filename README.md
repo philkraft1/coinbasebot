@@ -1,8 +1,37 @@
 # Coinbase Agentic Wallet (coinbasebot)
 
+Public repo: [https://github.com/philkraft1/coinbasebot](https://github.com/philkraft1/coinbasebot)
+
 This repo wires a Coinbase **Agentic Wallet** into Cursor and Claude Code so an agent can hold USDC, swap on Base, and pay for [x402](https://docs.cdp.coinbase.com/x402/welcome) APIs.
 
 No Coinbase API keys or seed phrases. You sign in with email, set spending limits, and the agent operates inside those limits.
+
+## Go live on your Windows PC
+
+This is the remaining work. The wallet already holds **~12 USDC + 0.0004 ETH on Base**. Claude on your machine is not wired until you do this.
+
+1. Install [Node.js 22+](https://nodejs.org) for Windows. In **PowerShell**: `node -v`
+2. Clone (public, no login):
+
+```powershell
+git clone https://github.com/philkraft1/coinbasebot.git
+cd coinbasebot
+```
+
+3. Still in **PowerShell** (not WSL):
+
+```powershell
+npx @coinbase/payments-mcp --client claude-code --auto-config
+npx skills add coinbase/agentic-wallet-skills --agent claude-code -y
+npx awal auth login kraftcoding@gmail.com
+```
+
+4. Enter the email OTP. Same wallet as this project.
+5. `npx awal show` → set **max per call $1** and **max per session $5**.
+6. Copy [config/cursor.mcp.windows.json](config/cursor.mcp.windows.json) to `C:\Users\phsok\.cursor\mcp.json`. Restart Cursor and Claude Code.
+7. Ask: “What’s my wallet balance?” then optionally “Swap $1 USDC for ETH on Base.”
+
+Do not start an unattended trading loop. Claude Desktop alone cannot swap.
 
 ## Coinbase.com vs this wallet
 
@@ -153,24 +182,12 @@ Official docs: [Agentic Wallet CLI](https://docs.cdp.coinbase.com/agentic-wallet
 
 ## Repositories
 
-**Origin:** [ivorycrowncollective/coinbasebot](https://cursor.com/codebase/ivorycrowncollective/coinbasebot) — private. Clone in WSL:
+**GitHub (public, use this):** [philkraft1/coinbasebot](https://github.com/philkraft1/coinbasebot)
 
 ```bash
-curl -fsSL https://downloads.cursor.com/origin/install.sh | sh
-origin auth login
-origin repo clone ivorycrowncollective/coinbasebot
+git clone https://github.com/philkraft1/coinbasebot.git
 ```
 
-If `origin` is not found:
+Downloads: [artifacts-v1 release](https://github.com/philkraft1/coinbasebot/releases/tag/artifacts-v1) (`coinbasebot.bundle`, `coinbasebot-working-tree.zip`).
 
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-```
-
-**GitHub:** after `gh auth login`:
-
-```bash
-npm run publish:github
-bash scripts/publish-to-github.sh ivorycrowncollective/coinbasebot private
-```
+**Origin (Cursor):** [ivorycrowncollective/coinbasebot](https://cursor.com/codebase/ivorycrowncollective/coinbasebot) — this cloud agent cannot push there (403). To sync from your PC after `origin auth login`: `bash scripts/push-from-your-pc.sh`.

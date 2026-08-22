@@ -3,3 +3,10 @@ node_modules/
 *.log
 .payments-mcp/
 coinbasebot/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.gh/
+

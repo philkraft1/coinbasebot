@@ -5,9 +5,9 @@
   "description": "Cursor and Claude Code setup for Coinbase Agentic Wallet — Base swaps, onramp, and x402 payments.",
   "repository": {
     "type": "git",
-    "url": "https://origin.cursor.com/ivorycrowncollective/coinbasebot.git"
+    "url": "https://github.com/philkraft1/coinbasebot.git"
   },
-  "homepage": "https://cursor.com/codebase/ivorycrowncollective/coinbasebot",
+  "homepage": "https://github.com/philkraft1/coinbasebot",
   "type": "module",
   "engines": {
     "node": ">=22"
