@@ -3,20 +3,23 @@ setlocal
 cd /d "%~dp0\.."
 
 echo Close Claude Desktop and Cursor first.
-echo Installing Payments MCP. This downloads Electron and can take a few minutes.
+echo.
+echo Node is already working if you can run npx. The official Coinbase
+echo installer falsely says "Node.js is not available" when Node lives in
+echo C:\Program Files\nodejs  (space in the path).
+echo.
+echo Using our installer instead...
 echo.
 
-call npx --yes @coinbase/payments-mcp@latest install --force --client other --no-auto-config --verbose
+call node "%~dp0install-payments-mcp.mjs"
 if errorlevel 1 (
-  echo First install failed. Retrying once...
-  timeout /t 5 /nobreak >nul
-  call npx --yes @coinbase/payments-mcp@latest install --force --client other --no-auto-config --verbose
+  echo.
+  echo Our installer failed. Check node -v and your network.
+  exit /b 1
 )
 
 if not exist "%USERPROFILE%\.payments-mcp\bundle.js" (
-  echo.
   echo bundle.js is still missing at %USERPROFILE%\.payments-mcp\bundle.js
-  echo Run: npx --yes @coinbase/payments-mcp status --verbose
   exit /b 1
 )
 

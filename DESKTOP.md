@@ -29,10 +29,13 @@ git pull https://github.com/philkraft1/coinbasebot.git main
 scripts\repair-mcp.cmd
 ```
 
-Or skip our script:
+The official `npx @coinbase/payments-mcp` installer is broken on Windows when Node is in `C:\Program Files\nodejs`. It reports **Node.js is not available** even though `npx` just ran. Use our installer instead:
 
 ```bat
-npx --yes @coinbase/payments-mcp install --force --client other --no-auto-config --verbose
+cd %USERPROFILE%\coinbasebot
+git pull https://github.com/philkraft1/coinbasebot.git main
+node scripts\install-payments-mcp.mjs
+node scripts\merge-payments-mcp.mjs
 dir %USERPROFILE%\.payments-mcp\bundle.js
 ```
 
