@@ -1,5 +1,5 @@
 @echo off
 cd /d "%~dp0\.."
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0repair-payments-mcp.ps1"
+call "%~dp0repair-mcp.cmd"
 if errorlevel 1 pause
 pause
