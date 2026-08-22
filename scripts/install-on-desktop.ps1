@@ -19,7 +19,13 @@
 
 $ErrorActionPreference = "Stop"
 $RepoUrl = "https://github.com/philkraft1/coinbasebot.git"
-$Target = Join-Path $env:USERPROFILE "Desktop\coinbasebot"
+$DesktopTarget = Join-Path $env:USERPROFILE "Desktop\coinbasebot"
+$HomeTarget = Join-Path $env:USERPROFILE "coinbasebot"
+if ((Test-Path (Join-Path $HomeTarget ".git")) -and -not (Test-Path (Join-Path $DesktopTarget ".git"))) {
+  $Target = $HomeTarget
+} else {
+  $Target = $DesktopTarget
+}
 
 function Write-Step([string]$msg) {
   Write-Host ""

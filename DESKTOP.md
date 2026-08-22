@@ -1,6 +1,9 @@
 # Transfer this project to `Desktop\coinbasebot`
 
-Your folder is `C:\Users\phsok\Desktop\coinbasebot`.
+Use whichever folder already has the clone:
+
+- `C:\Users\phsok\Desktop\coinbasebot`
+- `C:\Users\phsok\coinbasebot` (this is where the last repair script ran)
 
 This cloud agent cannot write to your Windows Desktop. Run the installer **on your PC** in **PowerShell**. That copies the public repo into that folder, installs Payments MCP and the trading skills, and **merges** `payments-mcp` into your existing Claude Desktop and Cursor configs without wiping other MCP servers.
 
@@ -19,10 +22,12 @@ Needs [Git for Windows](https://git-scm.com/download/win) and [Node.js 22+](http
 Fully quit **Claude Desktop** and **Cursor**, then in PowerShell:
 
 ```powershell
-cd $env:USERPROFILE\Desktop\coinbasebot
+cd $env:USERPROFILE\coinbasebot
 git pull https://github.com/philkraft1/coinbasebot.git main
-powershell -ExecutionPolicy Bypass -File .\scripts\repair-payments-mcp.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\repair-payments-mcp.ps1
 ```
+
+Run the **whole file** with `-File`. Do not use `irm | iex` and do not run a highlighted selection — that is what caused `Install-PaymentsMcpBundle` to be missing.
 
 Or skip git and run the Coinbase installer directly:
 
