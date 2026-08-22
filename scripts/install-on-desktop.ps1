@@ -48,7 +48,7 @@ if ($nodeMajor -lt 22) {
   throw "Node $nodeMajor is too old. Payments MCP needs Node 22+."
 }
 
-Write-Step "Put the repo in Desktop\coinbasebot"
+Write-Step "Put the repo in $Target"
 New-Item -ItemType Directory -Force -Path $Target | Out-Null
 Set-Location $Target
 
@@ -71,14 +71,14 @@ if ($hasGit) {
   Remove-Item -Recurse -Force $tmp
 }
 
-$repair = Join-Path $Target "scripts\repair-payments-mcp.ps1"
+$repair = Join-Path $Target "scripts\repair-mcp.cmd"
 if (-not (Test-Path -LiteralPath $repair)) {
   throw "Missing $repair after clone. git pull the latest main, then re-run."
 }
 
 Write-Host "Close Claude Desktop and Cursor before the MCP install." -ForegroundColor Yellow
 Write-Step "Install Payments MCP, skills, and merge configs"
-& powershell -NoProfile -ExecutionPolicy Bypass -File $repair
+cmd.exe /c "`"$repair`""
 if ($LASTEXITCODE -ne 0) {
-  throw "repair-payments-mcp.ps1 failed with exit code $LASTEXITCODE"
+  throw "repair-mcp.cmd failed with exit code $LASTEXITCODE"
 }

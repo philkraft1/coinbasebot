@@ -21,13 +21,20 @@ Needs [Git for Windows](https://git-scm.com/download/win) and [Node.js 22+](http
 
 Fully quit **Claude Desktop** and **Cursor**, then in PowerShell:
 
-```powershell
-cd $env:USERPROFILE\coinbasebot
+Use **Command Prompt** (not PowerShell syntax). From `C:\Users\phsok\coinbasebot`:
+
+```bat
+cd %USERPROFILE%\coinbasebot
 git pull https://github.com/philkraft1/coinbasebot.git main
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\repair-payments-mcp.ps1
+scripts\repair-mcp.cmd
 ```
 
-Run the **whole file** with `-File`. Do not use `irm | iex` and do not run a highlighted selection — that is what caused `Install-PaymentsMcpBundle` to be missing.
+Or skip our script:
+
+```bat
+npx --yes @coinbase/payments-mcp install --force --client other --no-auto-config --verbose
+dir %USERPROFILE%\.payments-mcp\bundle.js
+```
 
 Or skip git and run the Coinbase installer directly:
 
