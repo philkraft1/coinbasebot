@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
-import { homedir } from "node:os";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 export const installDir = join(homedir(), ".payments-mcp");
@@ -105,16 +105,36 @@ export async function ensureElectron(dir = installDir) {
     );
   }
 
+  allowElectronInstallScripts(dir);
+
   console.log("Downloading Electron (~100MB). Leave this window open.");
   await run(
     process.execPath,
-    [npmCli, "install", "--no-fund", "--no-audit"],
+    [
+      npmCli,
+      "install",
+      "--no-fund",
+      "--no-audit",
+      "--allow-scripts=electron",
+    ],
     dir,
   );
 
-  const installer = join(dir, "node_modules", "electron", "install.js");
-  if (existsSync(installer) && !existsSync(binary)) {
-    await run(process.execPath, [installer], dirname(installer));
+  if (!existsSync(binary)) {
+    const installer = join(dir, "node_modules", "electron", "install.js");
+    if (existsSync(installer)) {
+      console.log("npm 12 skipped Electron postinstall; running install.js");
+      try {
+        await run(process.execPath, [installer], dirname(installer));
+      } catch (error) {
+        console.warn("electron/install.js failed:", error instanceof Error ? error.message : error);
+      }
+    }
+  }
+
+  if (!existsSync(binary)) {
+    console.log("Official installer did not leave electron.exe. Downloading the GitHub zip.");
+    await downloadElectronFromGithub(dir);
   }
 
   if (!existsSync(binary)) {
@@ -124,4 +144,78 @@ export async function ensureElectron(dir = installDir) {
   }
   console.log("OK:", binary);
   return binary;
+}
+
+function allowElectronInstallScripts(dir) {
+  const pkgPath = join(dir, "package.json");
+  if (!existsSync(pkgPath)) return;
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+  const electronPkg = join(dir, "node_modules", "electron", "package.json");
+  const version = existsSync(electronPkg)
+    ? JSON.parse(readFileSync(electronPkg, "utf8")).version
+    : null;
+  pkg.allowScripts = {
+    ...(pkg.allowScripts && typeof pkg.allowScripts === "object" ? pkg.allowScripts : {}),
+    electron: true,
+    ...(version ? { [`electron@${version}`]: true } : {}),
+  };
+  writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
+}
+
+async function downloadElectronFromGithub(dir) {
+  const electronPkg = join(dir, "node_modules", "electron", "package.json");
+  if (!existsSync(electronPkg)) {
+    throw new Error("electron package is not installed; npm install did not finish.");
+  }
+  const { version } = JSON.parse(readFileSync(electronPkg, "utf8"));
+  const platform = process.platform === "win32" ? "win32" : process.platform;
+  const arch = process.arch;
+  const zipName = `electron-v${version}-${platform}-${arch}.zip`;
+  const url = `https://github.com/electron/electron/releases/download/v${version}/${zipName}`;
+  const zipPath = join(tmpdir(), zipName);
+  const dist = join(dir, "node_modules", "electron", "dist");
+  mkdirSync(dist, { recursive: true });
+
+  console.log("GET", url);
+  let lastError;
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      const response = await fetch(url, { redirect: "follow" });
+      if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+      const bytes = Buffer.from(await response.arrayBuffer());
+      if (bytes.length < 1_000_000) {
+        throw new Error(`Download too small (${bytes.length} bytes). Likely a blocked GitHub redirect.`);
+      }
+      writeFileSync(zipPath, bytes);
+      console.log(`Saved ${bytes.length} bytes to ${zipPath}`);
+      await extractZipArchive(zipPath, dist);
+      lastError = null;
+      break;
+    } catch (error) {
+      lastError = error;
+      console.warn(`Download attempt ${attempt} failed:`, error instanceof Error ? error.message : error);
+    }
+  }
+  if (lastError) throw lastError;
+
+  const pathTxt = join(dir, "node_modules", "electron", "path.txt");
+  writeFileSync(pathTxt, process.platform === "win32" ? "electron.exe" : "electron");
+}
+
+function extractZipArchive(zipPath, dest) {
+  mkdirSync(dest, { recursive: true });
+  if (process.platform === "win32") {
+    return run("tar", ["-xf", zipPath, "-C", dest], dest).catch(() =>
+      run(
+        "powershell.exe",
+        [
+          "-NoProfile",
+          "-Command",
+          `Expand-Archive -LiteralPath '${zipPath.replace(/'/g, "''")}' -DestinationPath '${dest.replace(/'/g, "''")}' -Force`,
+        ],
+        dest,
+      ),
+    );
+  }
+  return run("unzip", ["-o", zipPath, "-d", dest], dest);
 }

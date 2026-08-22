@@ -50,6 +50,8 @@ dir $env:USERPROFILE\.payments-mcp\bundle.js
 
 ## After the installer finishes
 
+If Electron download stops at `dist/: locales` and no `electron.exe`, npm 12 blocked the postinstall. Pull again and re-run `start-wallet`; it now approves Electron scripts and, if needed, downloads the official GitHub zip.
+
 If `start-wallet` says **Wallet install not found**, the zip is there but `electron.exe` is not. Stay on the network and run:
 
 ```bat
