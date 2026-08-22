@@ -17,9 +17,12 @@
     "mcp:status": "npx --yes @coinbase/payments-mcp status",
     "mcp:uninstall": "npx --yes @coinbase/payments-mcp uninstall",
     "skills:install": "npx --yes skills add coinbase/agentic-wallet-skills --agent claude-code -y",
+    "wallet:fix-windows": "node scripts/fix-awal-windows.mjs",
+    "wallet:start": "node scripts/start-wallet.mjs",
     "wallet:status": "npx --yes awal status",
     "wallet:balance": "npx --yes awal balance",
     "wallet:show": "npx --yes awal show",
+    "wallet:login": "node scripts/start-wallet.mjs && npx --yes awal auth login kraftcoding@gmail.com",
     "publish:github": "bash scripts/publish-to-github.sh"
   }
 }

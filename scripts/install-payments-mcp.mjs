@@ -13,6 +13,7 @@ import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { inflateRawSync } from "node:zlib";
 
 const BASE = "https://payments-mcp.coinbase.com";
@@ -130,6 +131,11 @@ if (existsSync(electronInstaller)) {
 
 if (!existsSync(bundle)) {
   throw new Error("bundle.js missing after install.");
+}
+
+const fix = join(dirname(fileURLToPath(import.meta.url)), "fix-awal-windows.mjs");
+if (existsSync(fix)) {
+  await run(process.execPath, [fix], installDir);
 }
 
 console.log("OK:", bundle);

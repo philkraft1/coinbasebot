@@ -50,10 +50,14 @@ dir $env:USERPROFILE\.payments-mcp\bundle.js
 
 ## After the installer finishes
 
-```powershell
-npx awal auth login kraftcoding@gmail.com
-npx awal auth verify <6-digit-code-from-email>
-npx awal show
+Do **not** run bare `npx awal` on Windows. Coinbase's CLI still hits `spawn EINVAL`, missing `C:\tmp`, and Unix `ps`. Use:
+
+```bat
+cd %USERPROFILE%\coinbasebot
+git pull https://github.com/philkraft1/coinbasebot.git main
+node scripts\start-wallet.mjs
+scripts\awal.cmd auth login kraftcoding@gmail.com
+scripts\awal.cmd auth verify YOUR_CODE
 ```
 
 In the wallet UI: **max per call $1**, **max per session $5**.
