@@ -5,8 +5,14 @@
  */
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
+import {
+  describeWalletGap,
+  ensureElectron,
+  findWallet,
+  installDir,
+} from "./lib/electron-install.mjs";
+
 await import(new URL("./fix-awal-windows.mjs", import.meta.url));
 
 const lockFile =
@@ -29,30 +35,25 @@ function walletAlreadyRunning() {
   return Number.isFinite(pid) && isPidAlive(pid);
 }
 
-function findWallet() {
-  const dirs = [join(homedir(), ".payments-mcp")];
-  if (process.env.LOCALAPPDATA) {
-    dirs.push(join(process.env.LOCALAPPDATA, "awal", "Data", "server"));
-  }
-  const electronName = process.platform === "win32" ? "electron.exe" : "electron";
-  for (const dir of dirs) {
-    const electron = join(dir, "node_modules", "electron", "dist", electronName);
-    const script = join(dir, "bundle-electron.js");
-    if (existsSync(electron) && existsSync(script)) {
-      return { electron, script, dir };
-    }
-  }
-  return null;
-}
-
 if (walletAlreadyRunning()) {
   console.log("Wallet already running (", lockFile, ")");
   process.exit(0);
 }
 
+if (existsSync(join(installDir, "bundle-electron.js"))) {
+  try {
+    await ensureElectron(installDir);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
+}
+
 const wallet = findWallet();
 if (!wallet) {
-  console.error("Wallet install not found. Run: node scripts/install-payments-mcp.mjs");
+  console.error("Wallet install not found. Electron never finished downloading.");
+  console.error(describeWalletGap());
+  console.error("Run: node scripts/install-payments-mcp.mjs");
   process.exit(1);
 }
 
@@ -69,16 +70,16 @@ const child = spawn(wallet.electron, [wallet.script], {
 });
 child.unref();
 
-const deadline = Date.now() + 30000;
+const deadline = Date.now() + 45000;
 while (Date.now() < deadline) {
   await new Promise((r) => setTimeout(r, 500));
   if (walletAlreadyRunning()) {
-    console.log("Wallet is up. Keep this window's wallet UI open, then run:");
-    console.log("  npx awal auth login kraftcoding@gmail.com");
+    console.log("Wallet is up. Leave the wallet window open, then run:");
+    console.log("  scripts\\awal.cmd auth login kraftcoding@gmail.com");
     process.exit(0);
   }
 }
 
-console.error("Wallet did not create", lockFile, "within 30s.");
-console.error("If a window opened, wait a few seconds and retry npx awal.");
+console.error("Wallet did not create", lockFile, "within 45s.");
+console.error("If a window opened, wait a few seconds and run scripts\\awal.cmd auth login ...");
 process.exit(1);

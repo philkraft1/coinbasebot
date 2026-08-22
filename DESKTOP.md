@@ -50,6 +50,14 @@ dir $env:USERPROFILE\.payments-mcp\bundle.js
 
 ## After the installer finishes
 
+If `start-wallet` says **Wallet install not found**, the zip is there but `electron.exe` is not. Stay on the network and run:
+
+```bat
+node scripts\start-wallet.mjs
+```
+
+That now downloads Electron (~100MB) itself. Then:
+
 Do **not** run bare `npx awal` on Windows. Coinbase's CLI still hits `spawn EINVAL`, missing `C:\tmp`, and Unix `ps`. Use:
 
 ```bat

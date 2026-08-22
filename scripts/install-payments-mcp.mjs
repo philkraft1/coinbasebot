@@ -9,44 +9,14 @@
  *
  * This script uses the same zip Coinbase serves, but never enables shell.
  */
-import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateRawSync } from "node:zlib";
+import { ensureElectron, installDir, run } from "./lib/electron-install.mjs";
 
 const BASE = "https://payments-mcp.coinbase.com";
-const installDir = join(homedir(), ".payments-mcp");
-
-function run(command, args, cwd) {
-  return new Promise((resolve, reject) => {
-    console.log(`> ${command} ${args.join(" ")}`);
-    const child = spawn(command, args, {
-      cwd,
-      stdio: "inherit",
-      shell: false,
-      windowsHide: true,
-    });
-    child.on("error", reject);
-    child.on("exit", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`${command} exited ${code}`));
-    });
-  });
-}
-
-function findNpmCli() {
-  const here = dirname(process.execPath);
-  const candidates = [
-    join(here, "node_modules", "npm", "bin", "npm-cli.js"),
-    join(here, "..", "lib", "node_modules", "npm", "bin", "npm-cli.js"),
-  ];
-  for (const file of candidates) {
-    if (existsSync(file)) return file;
-  }
-  return null;
-}
 
 function unzipBuffer(buffer, dest) {
   mkdirSync(dest, { recursive: true });
@@ -109,25 +79,7 @@ if (!existsSync(bundle)) {
   throw new Error(`Extract finished but ${bundle} is missing.`);
 }
 
-const npmCli = findNpmCli();
-console.log("Installing Electron (npm install in", installDir, ")");
-if (npmCli) {
-  await run(process.execPath, [npmCli, "install", "--no-fund", "--no-audit"], installDir);
-} else {
-  const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
-  await run(npmCmd, ["install", "--no-fund", "--no-audit"], installDir);
-}
-
-const electronInstaller = join(installDir, "node_modules", "electron", "install.js");
-if (existsSync(electronInstaller)) {
-  console.log("Running Electron downloader");
-  try {
-    await run(process.execPath, [electronInstaller], dirname(electronInstaller));
-  } catch (error) {
-    console.warn("Electron binary download failed. Payments MCP will not start without it.");
-    console.warn(error.message);
-  }
-}
+await ensureElectron(installDir);
 
 if (!existsSync(bundle)) {
   throw new Error("bundle.js missing after install.");
