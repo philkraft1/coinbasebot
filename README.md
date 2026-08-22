@@ -20,6 +20,8 @@ irm https://raw.githubusercontent.com/philkraft1/coinbasebot/main/scripts/instal
 
 That clones this repo into that folder, installs Payments MCP + Agentic Wallet skills, and **merges** `payments-mcp` into your existing Claude Desktop and Cursor configs (your other MCP servers stay). Details: [DESKTOP.md](DESKTOP.md).
 
+If install stops on `bundle.js` missing: close Claude Desktop and Cursor, then run [scripts/repair-payments-mcp.ps1](scripts/repair-payments-mcp.ps1). The Coinbase installer deletes a partial download after a network drop.
+
 Then sign in and set limits:
 
 ```powershell

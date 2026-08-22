@@ -14,6 +14,25 @@ irm https://raw.githubusercontent.com/philkraft1/coinbasebot/main/scripts/instal
 
 Needs [Git for Windows](https://git-scm.com/download/win) and [Node.js 22+](https://nodejs.org).
 
+## If you already cloned and got `bundle.js` missing
+
+Fully quit **Claude Desktop** and **Cursor**, then in PowerShell:
+
+```powershell
+cd $env:USERPROFILE\Desktop\coinbasebot
+git pull https://github.com/philkraft1/coinbasebot.git main
+powershell -ExecutionPolicy Bypass -File .\scripts\repair-payments-mcp.ps1
+```
+
+Or skip git and run the Coinbase installer directly:
+
+```powershell
+npx --yes @coinbase/payments-mcp install --force --client other --no-auto-config --verbose
+dir $env:USERPROFILE\.payments-mcp\bundle.js
+```
+
+`bundle.js` is downloaded from Coinbase (plus Electron). A dropped Wi-Fi/VPN (`ERR_NETWORK_CHANGED`) makes the official installer delete the partial folder, which is why our first script reported it missing.
+
 ## After the installer finishes
 
 ```powershell
