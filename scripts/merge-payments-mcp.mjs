@@ -64,4 +64,6 @@ for (const configPath of configs) {
   console.log("Merged payments-mcp into", configPath);
 }
 
-console.log("Done. Next: npx awal auth login kraftcoding@gmail.com");
+console.log("Done. On Windows do not run bare npx awal (spawn EINVAL).");
+console.log("  node scripts\\start-wallet.mjs");
+console.log("  node scripts\\run-awal.mjs auth login kraftcoding@gmail.com");

@@ -19,10 +19,15 @@
     "skills:install": "npx --yes skills add coinbase/agentic-wallet-skills --agent claude-code -y",
     "wallet:fix-windows": "node scripts/fix-awal-windows.mjs",
     "wallet:start": "node scripts/start-wallet.mjs",
-    "wallet:status": "npx --yes awal status",
-    "wallet:balance": "npx --yes awal balance",
-    "wallet:show": "npx --yes awal show",
-    "wallet:login": "node scripts/start-wallet.mjs && npx --yes awal auth login kraftcoding@gmail.com",
+    "postinstall": "node scripts/patch-awal-pkg.mjs",
+    "wallet:status": "node scripts/run-awal.mjs status",
+    "wallet:balance": "node scripts/run-awal.mjs balance",
+    "wallet:show": "node scripts/run-awal.mjs show",
+    "wallet:login": "node scripts/run-awal.mjs auth login kraftcoding@gmail.com",
+    "awal": "node scripts/run-awal.mjs",
     "publish:github": "bash scripts/publish-to-github.sh"
+  },
+  "dependencies": {
+    "awal": "^2.12.1"
   }
 }

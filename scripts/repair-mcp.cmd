@@ -36,8 +36,8 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo Next:
-echo   npx awal auth login kraftcoding@gmail.com
-echo   npx awal auth verify YOUR_CODE
-echo   npx awal show
+echo   node scripts\run-awal.mjs auth login kraftcoding@gmail.com
+echo   node scripts\run-awal.mjs auth verify YOUR_CODE
+echo   node scripts\run-awal.mjs show
 echo Set max per call $1 and max per session $5.
 exit /b 0

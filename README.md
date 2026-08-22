@@ -22,12 +22,13 @@ That clones this repo into that folder, installs Payments MCP + Agentic Wallet s
 
 If install stops on `bundle.js` missing: close Claude Desktop and Cursor, then run [scripts/repair-payments-mcp.ps1](scripts/repair-payments-mcp.ps1). The Coinbase installer deletes a partial download after a network drop.
 
-Then sign in and set limits:
+Then sign in and set limits. On Windows do **not** run bare `npx awal` (`spawn EINVAL`). Use:
 
-```powershell
-npx awal auth login kraftcoding@gmail.com
-npx awal auth verify <6-digit-code>
-npx awal show
+```bat
+npm install
+node scripts\run-awal.mjs auth login kraftcoding@gmail.com
+node scripts\run-awal.mjs auth verify YOUR_CODE
+node scripts\run-awal.mjs show
 ```
 
 Set **max per call $1** and **max per session $5**. Fully quit Claude Desktop and Cursor. Open `C:\Users\phsok\Desktop\coinbasebot` as the workspace.
