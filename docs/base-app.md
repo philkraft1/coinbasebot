@@ -6,7 +6,7 @@ Charts stay public. Username login still saves studies. Base Account / Connect w
 
 ## Production host (Vercel)
 
-[`vercel.json`](../vercel.json) builds the Vite UI (`market/dist`), rewrites `/coinbase-api/*` to `https://api.coinbase.com/*`, routes `/api/*` to the Fastify wrapper in [`api/index.ts`](../api/index.ts), and falls back to `index.html` for `/`, `/spot`, and `/login`.
+[`vercel.json`](../vercel.json) builds the Vite UI (`market/dist`), rewrites `/coinbase-api/*` to `https://api.coinbase.com/*`, and serves the SPA from `index.html` on `/` (includes the Base.dev ownership tag) and `app.html` on `/spot`, `/login`, and other HTML routes (same app, no ownership tag).
 
 ```bash
 npx vercel --prod
@@ -32,7 +32,7 @@ This step cannot be done from the repo. After the Vercel URL is live:
 
 1. Open [https://www.base.dev](https://www.base.dev) and create a project.
 2. Set **primary URL** to the production HTTPS origin (no trailing path), for example `https://coinbasebot.vercel.app`.
-   The homepage `<head>` includes `<meta name="base:app_id" content="6a8a941d39d7d26f4bad1867" />` for Base.dev ownership verification.
+   The homepage `<head>` includes `<meta name="base:app_id" content="6a8a941d39d7d26f4bad1867" />` for Base.dev ownership verification. Spot, Login, and other routes do not include this tag.
 3. Fill metadata:
 
 | Field | Suggested value |

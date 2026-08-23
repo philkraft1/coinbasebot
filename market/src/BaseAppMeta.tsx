@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { ensureBaseAppIdMeta } from "./baseAppMeta.ts";
+import { syncBaseAppIdMeta } from "./baseAppMeta.ts";
 
 export function BaseAppMeta() {
   const { pathname } = useLocation();
   useEffect(() => {
-    ensureBaseAppIdMeta();
+    syncBaseAppIdMeta(pathname);
   }, [pathname]);
   return null;
 }
