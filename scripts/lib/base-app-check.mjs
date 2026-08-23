@@ -83,6 +83,11 @@ export function validateVercelSecurityConfig(vercel) {
     ),
     "Coinbase rewrites must be limited to public market products and candles",
   );
+  const methodGuard = vercel.routes?.find(({ src }) => src === "/coinbase-api/.*");
+  invariant(methodGuard?.status === 405, "Coinbase proxy must reject mutating HTTP methods");
+  for (const method of ["POST", "PUT", "PATCH", "DELETE", "OPTIONS"]) {
+    invariant(methodGuard.methods?.includes(method), `Coinbase proxy must reject ${method}`);
+  }
 }
 
 function attribute(tag, name) {

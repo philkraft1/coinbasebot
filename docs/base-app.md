@@ -27,7 +27,8 @@ and do not reuse Neon `DATABASE_URL` (that schema is only `wallet.events`).
 | Variable | Required | Notes |
 | --- | --- | --- |
 | `AUTH_DATABASE_URL` | yes for signup/login | Encrypted RDS from [`infra/auth-rds.yaml`](../infra/auth-rds.yaml) (`auth_app` + `sslmode=verify-full`), **or** a dedicated Neon database created only for `auth.*` |
-| `AUTH_SESSION_SECRET` | yes for signup/login | Long random string. Serverless cannot persist `.data/session.secret` |
+| `AUTH_SESSION_SECRET` | yes for signup/login | At least 32 random bytes. Serverless cannot persist `.data/session.secret` |
+| `AUTH_ALLOWED_ORIGINS` | split-origin only | Comma-separated exact HTTPS origins; omit for same-origin production |
 | `AUTH_COOKIE_SECURE` | recommended | Set `1`. Also implied when `VERCEL=1` |
 | `AUTH_DATABASE_URL_OWNER` | migrate only | RDS master / Neon owner. Not needed at request time |
 | `AUTH_DATABASE_SSL_CA` | RDS if needed | Path to Amazon `global-bundle.pem` |
@@ -46,8 +47,36 @@ npm run base:check:prod
 ```
 
 The static check fails if the built HTML, manifest, or image assets drift from
-that configuration. The production check additionally verifies HTTPS response
-types, all public assets, and the Home, Spot, and Login shells.
+that configuration or if deployment security policy weakens. The production
+check additionally verifies HTTPS response types, security headers, all public
+assets, and the Home, Spot, and Login shells.
+
+## Security layers
+
+- Wallet connection requires an explicit Base Account or browser-wallet choice.
+  Wallet telemetry and silent reconnect are disabled; provider errors are
+  reduced to safe user-facing messages.
+- The enforced CSP allows only Ivory, Coinbase's public market WebSocket, Base
+  RPC/wallet hosts, and the Base Account handoff. `frame-ancestors 'none'`
+  prevents clickjacking. COOP stays `same-origin-allow-popups` so the Base
+  Account popup can communicate safely with its opener.
+- Vercel only proxies the two public Coinbase market-product route shapes used
+  by the UI. Mutating methods return 405. Hashed assets are immutable; HTML is
+  revalidated.
+- CI uses immutable Action commits, lockfile-only installs, no persisted Git
+  credentials, full tests/typechecks/build checks, and moderate-or-higher npm
+  audit gates. Dependabot monitors both npm projects and GitHub Actions.
+- The dormant username API is excluded from the static production deployment.
+  Before it is exposed, it requires a dedicated encrypted database and a
+  32-byte-or-longer random session secret. Sessions are HttpOnly, Secure on
+  HTTPS, SameSite Strict, issuer/audience bound, and expire after 24 hours.
+
+Vercel's platform DDoS mitigation is automatic. After authenticating to the
+project dashboard, stage WAF rules in **log-only** mode for `/coinbase-api/*`
+(start around 120 requests/minute/IP) and future `/api/login` or `/api/signup`
+routes (start around 10 requests/minute/IP). Review real traffic before
+publishing a rate-limit or challenge action; never deploy a broad deny rule
+without the staged log → preview → production process.
 
 ## Register on Base.dev (dashboard)
 

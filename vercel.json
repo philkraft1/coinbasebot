@@ -55,6 +55,22 @@
       ]
     }
   ],
+  "routes": [
+    {
+      "src": "/coinbase-api/.*",
+      "methods": [
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+        "OPTIONS"
+      ],
+      "status": 405,
+      "headers": {
+        "Allow": "GET, HEAD"
+      }
+    }
+  ],
   "rewrites": [
     {
       "source": "/coinbase-api/api/v3/brokerage/market/products",

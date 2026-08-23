@@ -37,8 +37,25 @@ below are only the non-obvious caveats for running it in a headless cloud VM.
   Auth API tests use ephemeral PGlite; they do not need AWS or Neon.
 - UI typecheck: `npm run typecheck:market`.
 - Auth API typecheck: `npm run typecheck:server`.
+- Dependency audits: `npm audit --audit-level=moderate` and
+  `npm audit --prefix market --audit-level=moderate`.
 - There is **no ESLint/Prettier config** in this repo; "lint" is effectively the
   TypeScript typecheck above.
+
+### Security-sensitive behavior
+- `vercel.json` is an enforced security boundary: keep the CSP compatible with
+  Coinbase market WebSockets and Base Account, and never change COOP from
+  `same-origin-allow-popups` to `same-origin` (that breaks secure popup
+  communication).
+- Do not restore a wildcard `/coinbase-api/:path*` proxy. Only public product
+  catalog/candle routes are allowed, and non-read methods must remain blocked.
+- Wallet users explicitly choose Base Account or a browser provider. Do not
+  silently reconnect, auto-select `window.ethereum`, expose raw provider
+  errors, or add signing/transaction actions without chain checks and a clear
+  confirmation step.
+- The auth API is not deployed. Before exposing it, use a distributed rate
+  limiter and complete a staged Vercel WAF rollout; the in-memory limiter is
+  local defense-in-depth only.
 
 ### Requires secrets — not runnable without them
 - **Neon Postgres event log** (`npm run db:migrate`, `npm run events`,
