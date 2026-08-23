@@ -23,11 +23,11 @@ function arg(name, fallback) {
 }
 
 const command = process.argv[2] || "list";
-const pool = createPool();
+const pool = createPool({ unpooled: command === "migrate" });
 
 try {
   if (command === "migrate") {
-    await migrate(pool);
+    const result = await migrate(pool);
     await recordEvent(
       {
         kind: "note",
@@ -65,7 +65,12 @@ try {
         pool,
       );
     }
-    console.log("wallet.events is ready on Neon.");
+    console.log("wallet.events is ready on Neon (RLS + wallet_app).");
+    if (result.appUrl) {
+      console.log("Set DATABASE_URL in .env to this pooled wallet_app URL. Do not commit it.");
+      console.log("Keep DATABASE_URL_UNPOOLED as the neondb_owner direct URL for npm run db:migrate.");
+      console.log(result.appUrl);
+    }
   } else if (command === "list") {
     const rows = await listEvents({ kind: arg("--kind", ""), limit: arg("--limit", "20") }, pool);
     if (!rows.length) {

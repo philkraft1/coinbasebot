@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,25 +30,60 @@ export const DEFAULT_WALLET = {
 };
 
 const MIGRATION = join(dirname(fileURLToPath(import.meta.url)), "../../sql/wallet-events.sql");
+const SECURITY = join(dirname(fileURLToPath(import.meta.url)), "../../sql/wallet-security.sql");
 
-export function databaseUrl() {
-  loadDotEnv();
-  const raw = (process.env.DATABASE_URL || "").trim();
-  if (!raw) {
-    throw new Error("Set DATABASE_URL in .env (see .env.example). Do not commit the real URL.");
-  }
+export function normalizeDatabaseUrl(raw) {
   return raw
     .replace(/&channel_binding=require/g, "")
     .replace(/\?channel_binding=require&/, "?")
     .replace(/sslmode=require\b/, "sslmode=verify-full");
 }
 
-export function createPool() {
+export function databaseUrl({ unpooled = false } = {}) {
+  loadDotEnv();
+  const raw = unpooled
+    ? (process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || "").trim()
+    : (process.env.DATABASE_URL || "").trim();
+  if (!raw) {
+    throw new Error(
+      unpooled
+        ? "Set DATABASE_URL_UNPOOLED or DATABASE_URL in .env (see .env.example). Do not commit the real URL."
+        : "Set DATABASE_URL in .env (see .env.example). Do not commit the real URL.",
+    );
+  }
+  return normalizeDatabaseUrl(raw);
+}
+
+export function createPool({ unpooled = false } = {}) {
   return new pg.Pool({
-    connectionString: databaseUrl(),
+    connectionString: databaseUrl({ unpooled }),
     ssl: { rejectUnauthorized: true },
     max: 2,
   });
+}
+
+export function buildPooledAppUrl(ownerUrl, password) {
+  const parsed = new URL(normalizeDatabaseUrl(ownerUrl));
+  parsed.username = "wallet_app";
+  parsed.password = password;
+  if (!parsed.hostname.includes("-pooler.")) {
+    parsed.hostname = parsed.hostname.replace(/^([^.]+)\./, "$1-pooler.");
+  }
+  return parsed.toString();
+}
+
+export async function ensureWalletAppRole(pool) {
+  const existing = await pool.query(`select 1 from pg_roles where rolname = 'wallet_app'`);
+  if (existing.rowCount > 0) {
+    return { created: false, password: null };
+  }
+  const password = randomBytes(24).toString("base64url");
+  const { rows } = await pool.query(
+    `select format('create role wallet_app login password %L', $1::text) as sql`,
+    [password],
+  );
+  await pool.query(rows[0].sql);
+  return { created: true, password };
 }
 
 export function redactArgs(args) {
@@ -121,9 +157,15 @@ function parseAmount(value) {
   return Number.isFinite(n) ? n : null;
 }
 
-export async function migrate(pool = createPool()) {
-  const sql = readFileSync(MIGRATION, "utf8");
-  await pool.query(sql);
+export async function migrate(pool = createPool({ unpooled: true })) {
+  await pool.query(readFileSync(MIGRATION, "utf8"));
+  const role = await ensureWalletAppRole(pool);
+  await pool.query(readFileSync(SECURITY, "utf8"));
+  const ownerUrl = databaseUrl({ unpooled: true });
+  return {
+    createdAppRole: role.created,
+    appUrl: role.created ? buildPooledAppUrl(ownerUrl, role.password) : null,
+  };
 }
 
 export async function recordEvent(event, pool = createPool()) {
