@@ -8,7 +8,7 @@ function invariant(condition, message) {
 export function builderCodeSuffix(builderCode) {
   const bytes = Buffer.from(builderCode, "utf8");
   invariant(bytes.length > 0 && bytes.length <= 255, "Builder Code must be 1-255 bytes");
-  return `0x${bytes.toString("hex")}${bytes.length.toString(16).padStart(2, "0")}00${"8021".repeat(7)}`;
+  return `0x${bytes.toString("hex")}${bytes.length.toString(16).padStart(2, "0")}00${"8021".repeat(8)}`;
 }
 
 export function validateConfig(config) {
