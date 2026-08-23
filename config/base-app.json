@@ -1,0 +1,59 @@
+{
+  "appId": "6a8a941d39d7d26f4bad1867",
+  "name": "Ivory",
+  "title": "Ivory — live USD spot",
+  "tagline": "Live USD spot charts",
+  "description": "Watch live Coinbase USD spot markets, charts, trades, and order books.",
+  "socialDescription": "Watch top USD spot markets in the Base App with live charts, trades, and order books.",
+  "origin": "https://coinbasebot.vercel.app",
+  "category": "Finance",
+  "manifestPath": "/manifest.webmanifest",
+  "iconPath": "/icon-512.png",
+  "socialImagePath": "/og.png",
+  "routes": [
+    "/",
+    "/spot",
+    "/login"
+  ],
+  "assets": [
+    {
+      "path": "/icon.svg",
+      "contentType": "image/svg+xml",
+      "manifest": true,
+      "sizes": "any"
+    },
+    {
+      "path": "/apple-touch-icon.png",
+      "contentType": "image/png",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "path": "/icon-192.png",
+      "contentType": "image/png",
+      "width": 192,
+      "height": 192,
+      "manifest": true
+    },
+    {
+      "path": "/icon-512.png",
+      "contentType": "image/png",
+      "width": 512,
+      "height": 512,
+      "manifest": true
+    },
+    {
+      "path": "/ivory-logo.png",
+      "contentType": "image/png",
+      "width": 256,
+      "height": 256,
+      "manifest": true
+    },
+    {
+      "path": "/og.png",
+      "contentType": "image/png",
+      "width": 1200,
+      "height": 630
+    }
+  ]
+}

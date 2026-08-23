@@ -1,4 +1,4 @@
-# Launch Coinbasebot in the Base App
+# Launch Ivory in the Base App
 
 The Base App (after April 9, 2026) treats this repo as a **standard web app + wallet**. There is no MiniKit / `farcaster.json` path. Discovery is [Base.dev](https://www.base.dev).
 
@@ -6,13 +6,17 @@ Charts stay public. Username login still saves studies. Base Account / Connect w
 
 ## Production host (Vercel)
 
-[`vercel.json`](../vercel.json) builds the Vite UI (`market/dist`), rewrites `/coinbase-api/*` to `https://api.coinbase.com/*`, routes `/api/*` to the Fastify wrapper in [`api/index.ts`](../api/index.ts), and falls back to `index.html` for `/`, `/spot`, and `/login`.
+[`vercel.json`](../vercel.json) builds the Vite UI (`market/dist`), rewrites `/coinbase-api/*` to `https://api.coinbase.com/*`, and falls back to `index.html` for `/`, `/spot`, and `/login`.
 
-```bash
-npx vercel --prod
-```
+Vercel's Git integration creates a preview for feature branches and deploys
+`main` to `https://coinbasebot.vercel.app`. Do not run a second CLI deployment
+in CI. The `Base App` GitHub workflow validates every build and smoke-tests the
+exact URL reported by a successful Vercel deployment.
 
-Set these **production** environment variables (Vercel dashboard or `vercel env add`). Do **not** reuse Neon `DATABASE_URL` (that schema is only `wallet.events`).
+The current Base launch is static and does not expose `/api`; Home and Spot
+remain public, while username signup/login is unavailable in production. If the
+Fastify API is re-enabled later, set these **production** environment variables
+and do not reuse Neon `DATABASE_URL` (that schema is only `wallet.events`).
 
 | Variable | Required | Notes |
 | --- | --- | --- |
@@ -22,9 +26,22 @@ Set these **production** environment variables (Vercel dashboard or `vercel env 
 | `AUTH_DATABASE_URL_OWNER` | migrate only | RDS master / Neon owner. Not needed at request time |
 | `AUTH_DATABASE_SSL_CA` | RDS if needed | Path to Amazon `global-bundle.pem` |
 
-Without `AUTH_DATABASE_URL` on Vercel, `/api/health` still returns 200 (`store: "unavailable"`) and Home/Spot still load. Signup/login return **503**.
-
 Local/dev is unchanged: `npm run auth` (PGlite under `.data/auth`) and `npm run market`.
+
+## Automated preflight
+
+[`config/base-app.json`](../config/base-app.json) is the source of truth for the
+Base app ID, production origin, listing copy, routes, and image dimensions.
+
+```bash
+npm run build --prefix market
+npm run base:check
+npm run base:check:prod
+```
+
+The static check fails if the built HTML, manifest, or image assets drift from
+that configuration. The production check additionally verifies HTTPS response
+types, all public assets, and the Home, Spot, and Login shells.
 
 ## Register on Base.dev (dashboard)
 
@@ -37,10 +54,10 @@ This step cannot be done from the repo. After the Vercel URL is live:
 
 | Field | Suggested value |
 | --- | --- |
-| Name | Coinbasebot |
+| Name | Ivory |
 | Tagline | Live USD spot charts |
-| Description | Watch Coinbase Advanced Trade USD spot in the Base App. Public charts, optional Base wallet, username-saved studies. |
-| Icon | `https://YOUR-HOST/icon-512.png` |
+| Description | Watch live Coinbase USD spot markets, charts, trades, and order books. |
+| Icon | `https://coinbasebot.vercel.app/icon-512.png` |
 | Screenshots | Home (`/`) and Spot (`/spot`) on a phone |
 | Category | Finance / Markets (pick the closest Base.dev category) |
 | Builder code | Your [builder code](https://docs.base.org/apps/builder-codes/builder-codes) |
