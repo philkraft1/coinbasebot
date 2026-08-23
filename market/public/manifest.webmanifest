@@ -1,14 +1,14 @@
 {
   "name": "Ivory",
   "short_name": "Ivory",
-  "description": "Live Coinbase USD spot charts and an agentic Base wallet",
+  "description": "Watch live Coinbase USD spot markets, charts, trades, and order books.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0c1014",
   "theme_color": "#0c1014",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "/ivory-logo.png", "sizes": "1024x1024", "type": "image/png" },
+    { "src": "/ivory-logo.png", "sizes": "256x256", "type": "image/png" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]

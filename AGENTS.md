@@ -28,16 +28,34 @@ below are only the non-obvious caveats for running it in a headless cloud VM.
   Production (Vercel) must set `AUTH_DATABASE_URL` + `AUTH_SESSION_SECRET`;
   PGlite is not used there and signup/login return 503 without those vars.
   Hosting, Coinbase rewrites, and Base.dev registration: `docs/base-app.md`.
-- **Base wallet:** omitted from the nav for now so Base.dev can register the
-  public HTTPS app. Charts stay ungated. Username login is unchanged.
+- **Base wallet:** the market shell wraps `WagmiProvider` (`injected` +
+  `baseAccount` on Base) and exposes Connect wallet in the nav. Charts stay
+  ungated. Wallet connections include the configured ERC-8021 Builder Code.
 
 ### Tests / typecheck / lint
 - Tests: `npm test` (root scripts, `market/src/*.test.ts`, and `server/**/*.test.ts`).
   Auth API tests use ephemeral PGlite; they do not need AWS or Neon.
-- UI typecheck: `npx tsc --noEmit -p market/tsconfig.json`.
-- Auth API typecheck: `npx tsc --noEmit -p server/tsconfig.json`.
+- UI typecheck: `npm run typecheck:market`.
+- Auth API typecheck: `npm run typecheck:server`.
+- Dependency audits: `npm audit --audit-level=moderate` and
+  `npm audit --prefix market --audit-level=moderate`.
 - There is **no ESLint/Prettier config** in this repo; "lint" is effectively the
   TypeScript typecheck above.
+
+### Security-sensitive behavior
+- `vercel.json` is an enforced security boundary: keep the CSP compatible with
+  Coinbase market WebSockets and Base Account, and never change COOP from
+  `same-origin-allow-popups` to `same-origin` (that breaks secure popup
+  communication).
+- Do not restore a wildcard `/coinbase-api/:path*` proxy. Only public product
+  catalog/candle routes are allowed, and non-read methods must remain blocked.
+- Wallet users explicitly choose Base Account or a browser provider. Do not
+  silently reconnect, auto-select `window.ethereum`, expose raw provider
+  errors, or add signing/transaction actions without chain checks and a clear
+  confirmation step.
+- The auth API is not deployed. Before exposing it, use a distributed rate
+  limiter and complete a staged Vercel WAF rollout; the in-memory limiter is
+  local defense-in-depth only.
 
 ### Requires secrets — not runnable without them
 - **Neon Postgres event log** (`npm run db:migrate`, `npm run events`,

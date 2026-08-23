@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   FALLBACK_TOP_USD,
+  coinbaseSpotUrl,
   fillTopUsdSpot,
   isPublicUsdSpot,
   rankTopUsdSpot,
@@ -11,6 +12,7 @@ test("keeps USD spot and allowed USDC, drops ETH-USDC and disabled pairs", () =>
   assert.equal(isPublicUsdSpot({ product_id: "ETH-USD", quote_currency_id: "USD", product_type: "SPOT" }), true);
   assert.equal(isPublicUsdSpot({ product_id: "USDT-USDC", quote_currency_id: "USDC", product_type: "SPOT" }), true);
   assert.equal(isPublicUsdSpot({ product_id: "ETH-USDC", quote_currency_id: "USDC", product_type: "SPOT" }), false);
+  assert.equal(isPublicUsdSpot({ product_id: "../WALLET-USD", quote_currency_id: "USD", product_type: "SPOT" }), false);
   assert.equal(
     isPublicUsdSpot({
       product_id: "BTC-USD",
@@ -19,6 +21,13 @@ test("keeps USD spot and allowed USDC, drops ETH-USDC and disabled pairs", () =>
       trading_disabled: true,
     }),
     false,
+  );
+});
+
+test("coinbaseSpotUrl encodes external path input", () => {
+  assert.equal(
+    coinbaseSpotUrl("BTC-USD/../../fake"),
+    "https://www.coinbase.com/advanced-trade/spot/BTC-USD%2F..%2F..%2Ffake",
   );
 });
 

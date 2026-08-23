@@ -2,6 +2,15 @@ import type { ChartPrefs } from "./prefs";
 
 export type AuthUser = { id: string; username: string };
 
+export function authApiErrorMessage(status: number): string {
+  if (status === 400) return "Check your username and password and try again.";
+  if (status === 401) return "Username or password is incorrect.";
+  if (status === 409) return "That username is unavailable.";
+  if (status === 429) return "Too many attempts. Try again later.";
+  if (status === 503) return "Accounts are temporarily unavailable.";
+  return "The account request failed. Try again.";
+}
+
 async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
@@ -13,7 +22,7 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     // empty
   }
   if (!response.ok) {
-    throw new Error(body.error || `Request failed (${response.status})`);
+    throw new Error(authApiErrorMessage(response.status));
   }
   return body;
 }

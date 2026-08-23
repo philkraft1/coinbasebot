@@ -1,0 +1,70 @@
+name: Base App
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  deployment_status:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: base-app-${{ github.event_name }}-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event_name != 'deployment_status'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            market/package-lock.json
+      - name: Install root dependencies
+        run: npm ci --ignore-scripts
+      - name: Install market dependencies
+        run: npm ci --prefix market
+      - name: Audit root dependencies
+        run: npm audit --audit-level=moderate
+      - name: Audit market dependencies
+        run: npm audit --prefix market --audit-level=moderate
+      - name: Run tests
+        run: npm test
+      - name: Typecheck market
+        run: npm run typecheck:market
+      - name: Typecheck auth API
+        run: npm run typecheck:server
+      - name: Build market
+        run: npm run build --prefix market
+      - name: Validate Base App artifacts
+        run: npm run base:check
+
+  deployment-smoke:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'deployment_status' &&
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Production' &&
+      github.event.deployment_status.environment_url != '')
+    runs-on: ubuntu-latest
+    env:
+      DEPLOYMENT_URL: ${{ github.event_name == 'workflow_dispatch' && 'https://coinbasebot.vercel.app' || github.event.deployment_status.environment_url }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Smoke-test deployed Base App
+        run: node scripts/check-base-app.mjs --url "$DEPLOYMENT_URL"

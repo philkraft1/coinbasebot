@@ -17,8 +17,9 @@ export function productionAuthError(env: NodeJS.ProcessEnv = process.env): strin
   if (!(env.AUTH_DATABASE_URL || "").trim()) {
     return "Accounts are not configured. Set AUTH_DATABASE_URL to encrypted RDS or a dedicated Neon database — not wallet DATABASE_URL.";
   }
-  if (!(env.AUTH_SESSION_SECRET || "").trim()) {
-    return "Accounts are not configured. Set AUTH_SESSION_SECRET so sessions survive serverless cold starts.";
+  const secret = (env.AUTH_SESSION_SECRET || "").trim();
+  if (new TextEncoder().encode(secret).byteLength < 32) {
+    return "Accounts are not configured. Set AUTH_SESSION_SECRET to at least 32 random bytes.";
   }
   return null;
 }

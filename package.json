@@ -31,9 +31,13 @@
     "db:migrate": "node scripts/wallet-events.mjs migrate",
     "auth": "node --experimental-strip-types server/auth-server.ts",
     "auth:migrate": "node --experimental-strip-types server/migrate.ts",
+    "typecheck:market": "npx --prefix market tsc --noEmit -p market/tsconfig.json",
+    "typecheck:server": "npx --prefix market tsc --noEmit -p server/tsconfig.json",
     "events": "node scripts/wallet-events.mjs list",
     "events:record": "node scripts/wallet-events.mjs record",
     "market": "npm --prefix market run dev",
+    "base:check": "node scripts/check-base-app.mjs",
+    "base:check:prod": "node scripts/check-base-app.mjs --url https://coinbasebot.vercel.app",
     "publish:github": "bash scripts/publish-to-github.sh"
   },
   "dependencies": {

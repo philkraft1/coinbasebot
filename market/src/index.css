@@ -64,7 +64,8 @@ body {
 
 .nav-brand,
 .nav-links,
-.nav-user {
+.nav-user,
+.nav-wallet {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -77,6 +78,52 @@ body {
   border-radius: 10px;
   object-fit: cover;
   border: 1px solid var(--line);
+}
+
+.nav-addr {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-connector {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.nav-wallet {
+  position: relative;
+}
+
+.wallet-btn {
+  padding: 5px 10px;
+  font-size: 0.82rem;
+}
+
+.wallet-picker {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  min-width: 220px;
+  gap: 4px;
+  padding: 8px;
+  background: var(--chrome);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 16px 36px rgb(0 0 0 / 45%);
+}
+
+.wallet-choice {
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.nav-wallet-error {
+  max-width: 180px;
+  font-size: 0.72rem;
 }
 
 .nav-links a {
