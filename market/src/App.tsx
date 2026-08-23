@@ -14,14 +14,16 @@ import {
   applyStatus,
   applyTickers,
   applyTrades,
+  fetchFiveMinuteHistory,
   feedError,
   type Candle,
+  type FiveMinuteCandle,
   type ProductStatus,
   type Ticker,
   type Trade,
 } from "./parse";
 import { BookPanel } from "./panels/BookPanel";
-import { CandleStrip } from "./panels/CandleStrip";
+import { CandleChart } from "./panels/CandleChart";
 import { TradesPanel } from "./panels/TradesPanel";
 import { Watchlist } from "./panels/Watchlist";
 import { useTopUsdSpot } from "./useTopUsdSpot";
@@ -42,6 +44,7 @@ export function App() {
   const tickersRef = useRef<Record<string, Ticker>>({});
   const tradesRef = useRef<Trade[]>([]);
   const candlesRef = useRef<Record<string, Candle[]>>({});
+  const historyRef = useRef<Record<string, FiveMinuteCandle[]>>({});
   const statusRef = useRef<Record<string, ProductStatus>>({});
   const trackerRef = useRef(createFeedTracker());
   const lastResubscribe = useRef(0);
@@ -56,6 +59,22 @@ export function App() {
   const [heartbeat, setHeartbeat] = useState<HeartbeatTick | null>(null);
   const [gaps, setGaps] = useState<SequenceGap[]>([]);
   const [staleBook, setStaleBook] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchFiveMinuteHistory(focused)
+      .then((bars) => {
+        if (cancelled || !bars.length) return;
+        historyRef.current = { ...historyRef.current, [focused]: bars };
+        setTick((n) => n + 1);
+      })
+      .catch(() => {
+        // Live WS candles still fill the chart.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [focused]);
 
   useEffect(() => {
     tickersRef.current = {};
@@ -203,6 +222,11 @@ export function App() {
     return { ...candlesRef.current };
   }, [tick]);
 
+  const history = useMemo(() => {
+    void tick;
+    return { ...historyRef.current };
+  }, [tick]);
+
   const statuses = useMemo(() => {
     void tick;
     return { ...statusRef.current };
@@ -237,7 +261,7 @@ export function App() {
         statuses={statuses}
         onFocus={setFocused}
       />
-      <CandleStrip productId={focused} raw={candles} />
+      <CandleChart productId={focused} raw={candles} history={history} />
       <div className="workspace">
         <TradesPanel productId={focused} trades={trades} />
         <BookPanel productId={focused} bids={book.bids} asks={book.asks} stale={staleBook} />

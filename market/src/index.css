@@ -92,14 +92,75 @@ body {
   min-height: 0;
 }
 
-.candle-strip {
+.candle-chart {
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.chart-head h2 {
+  margin: 0;
 }
 
 .candle {
   margin: 0;
   font-variant-numeric: tabular-nums;
   color: var(--text);
+}
+
+.chart {
+  flex: 1;
+  width: 100%;
+  min-height: 160px;
+}
+
+.chart .grid {
+  stroke: #243040;
+  stroke-width: 1;
+}
+
+.chart .axis {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.chart .axis.time {
+  text-anchor: middle;
+}
+
+.chart .wick.up,
+.chart .body.up {
+  stroke: var(--bid);
+  fill: var(--bid);
+}
+
+.chart .wick.down,
+.chart .body.down {
+  stroke: var(--ask);
+  fill: var(--ask);
+}
+
+.chart .wick {
+  stroke-width: 1.5;
+}
+
+.chart .vol.up {
+  fill: var(--bid);
+  opacity: 0.35;
+}
+
+.chart .vol.down {
+  fill: var(--ask);
+  opacity: 0.35;
 }
 
 .status {

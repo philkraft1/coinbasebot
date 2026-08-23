@@ -49,6 +49,10 @@ export type FiveMinuteCandle = {
   volume: number;
 };
 
+export const RAW_CANDLE_LIMIT = 360;
+export const FIVE_MINUTE_LIMIT = 72;
+export const CANDLES_URL = "/coinbase-api/api/v3/brokerage/market/products";
+
 type FeedPayload = {
   channel?: string;
   type?: string;
@@ -101,7 +105,7 @@ export function applyRawCandles(map: Record<string, Candle[]>, payload: FeedPayl
       if (index >= 0) rows[index] = candle;
       else rows.push(candle);
       rows.sort((a, b) => Number(a.start) - Number(b.start));
-      map[candle.product_id] = rows.slice(-80);
+      map[candle.product_id] = rows.slice(-RAW_CANDLE_LIMIT);
     }
   }
   return true;
@@ -128,7 +132,52 @@ export function toFiveMinuteCandles(rows: Candle[]): FiveMinuteCandle[] {
     existing.close = close;
     existing.volume += volume || 0;
   }
-  return [...buckets.values()].sort((a, b) => a.start - b.start).slice(-12);
+  return [...buckets.values()].sort((a, b) => a.start - b.start).slice(-FIVE_MINUTE_LIMIT);
+}
+
+export function mergeFiveMinuteBars(
+  history: FiveMinuteCandle[],
+  live: FiveMinuteCandle[],
+  limit = FIVE_MINUTE_LIMIT,
+): FiveMinuteCandle[] {
+  const byStart = new Map<number, FiveMinuteCandle>();
+  for (const bar of history) byStart.set(bar.start, bar);
+  for (const bar of live) byStart.set(bar.start, bar);
+  return [...byStart.values()].sort((a, b) => a.start - b.start).slice(-limit);
+}
+
+export function asFiveMinuteCandle(row: {
+  start?: string | number;
+  open?: string | number;
+  high?: string | number;
+  low?: string | number;
+  close?: string | number;
+  volume?: string | number;
+}): FiveMinuteCandle | null {
+  const start = Number(row.start);
+  const open = Number(row.open);
+  const high = Number(row.high);
+  const low = Number(row.low);
+  const close = Number(row.close);
+  const volume = Number(row.volume);
+  if (![start, open, high, low, close].every(Number.isFinite)) return null;
+  return { start, open, high, low, close, volume: Number.isFinite(volume) ? volume : 0 };
+}
+
+export async function fetchFiveMinuteHistory(
+  productId: string,
+  limit = FIVE_MINUTE_LIMIT,
+  fetcher: typeof fetch = fetch,
+): Promise<FiveMinuteCandle[]> {
+  const url = `${CANDLES_URL}/${encodeURIComponent(productId)}/candles?granularity=FIVE_MINUTE&limit=${limit}`;
+  const response = await fetcher(url);
+  if (!response.ok) throw new Error(`candles HTTP ${response.status}`);
+  const data = (await response.json()) as { candles?: Array<Record<string, string>> };
+  const bars = (data.candles || [])
+    .map((row) => asFiveMinuteCandle(row))
+    .filter((bar): bar is FiveMinuteCandle => bar !== null)
+    .sort((a, b) => a.start - b.start);
+  return bars.slice(-limit);
 }
 
 export function applyStatus(map: Record<string, ProductStatus>, payload: FeedPayload): boolean {
