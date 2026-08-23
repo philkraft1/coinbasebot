@@ -3,17 +3,10 @@ import { layoutCandleChart } from "../chart.ts";
 import { LANDING_NAMES, LANDING_PRODUCTS } from "../landingExamples.ts";
 import { formatChange, formatPrice, formatVolume } from "../landingQuotes.ts";
 import type { OhlcBar } from "../parse.ts";
-import { sma } from "../studies.ts";
 import { useLandingQuotes } from "../useLandingQuotes.ts";
 
 function MiniSpot({ bars }: { bars: OhlcBar[] }) {
-  const closes = bars.map((bar) => bar.close);
-  const layout = layoutCandleChart(bars, 420, 150, 60, {
-    overlays: [{ id: "sma20", className: "sma20", values: sma(closes, 8) }],
-    volSma: null,
-    rsi: null,
-    macd: null,
-  });
+  const layout = layoutCandleChart(bars, 420, 170, 60);
 
   if (bars.length === 0) {
     return <p className="empty">Waiting for live candles…</p>;

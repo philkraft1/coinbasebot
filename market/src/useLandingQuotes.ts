@@ -13,7 +13,7 @@ import {
   type Ticker,
 } from "./parse";
 
-const LANDING_BARS = 40;
+const LANDING_BARS = 24;
 
 async function fetchLandingHistory(productId: string): Promise<OhlcBar[]> {
   const end = Math.floor(Date.now() / 1000);
