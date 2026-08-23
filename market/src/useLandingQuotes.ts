@@ -1,19 +1,35 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LANDING_PRODUCTS } from "./landingExamples";
-import { buildQuote, type LandingQuote } from "./landingQuotes";
+import { applyTickerToLastBar, buildQuote, type LandingQuote } from "./landingQuotes";
 import { subscribeMessage, WS_URL } from "./level2";
 import {
   applyRawCandles,
   applyTickers,
   bucketCandles,
-  fetchFiveMinuteHistory,
+  fetchCandleHistory,
   mergeFiveMinuteBars,
   type Candle,
   type OhlcBar,
   type Ticker,
 } from "./parse";
 
-export function useLandingQuotes(): { quotes: LandingQuote[]; status: "connecting" | "live" | "error" } {
+const LANDING_BARS = 40;
+
+async function fetchLandingHistory(productId: string): Promise<OhlcBar[]> {
+  const end = Math.floor(Date.now() / 1000);
+  return fetchCandleHistory({
+    productId,
+    granularity: "ONE_MINUTE",
+    start: end - LANDING_BARS * 60,
+    end,
+  });
+}
+
+export function useLandingQuotes(): {
+  quotes: LandingQuote[];
+  charts: Record<string, OhlcBar[]>;
+  status: "connecting" | "live" | "error";
+} {
   const [status, setStatus] = useState<"connecting" | "live" | "error">("connecting");
   const [tick, setTick] = useState(0);
   const historyRef = useRef<Record<string, OhlcBar[]>>({});
@@ -24,7 +40,7 @@ export function useLandingQuotes(): { quotes: LandingQuote[]; status: "connectin
     let cancelled = false;
     Promise.all(
       LANDING_PRODUCTS.map(async (productId) => {
-        const bars = await fetchFiveMinuteHistory(productId);
+        const bars = await fetchLandingHistory(productId);
         return [productId, bars] as const;
       }),
     )
@@ -80,13 +96,19 @@ export function useLandingQuotes(): { quotes: LandingQuote[]; status: "connectin
 
   return useMemo(() => {
     void tick;
+    const charts: Record<string, OhlcBar[]> = {};
     const quotes = LANDING_PRODUCTS.map((productId) => {
-      const live = mergeFiveMinuteBars(
-        historyRef.current[productId] || [],
-        bucketCandles(liveRef.current[productId] || [], 300),
+      const ticker = tickersRef.current[productId];
+      const live = applyTickerToLastBar(
+        mergeFiveMinuteBars(
+          historyRef.current[productId] || [],
+          bucketCandles(liveRef.current[productId] || [], 60),
+        ),
+        ticker,
       );
-      return buildQuote(productId, tickersRef.current[productId], live);
+      charts[productId] = live;
+      return buildQuote(productId, ticker, live);
     });
-    return { quotes, status };
+    return { quotes, charts, status };
   }, [tick, status]);
 }

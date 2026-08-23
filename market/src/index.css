@@ -195,9 +195,12 @@ body {
 .showcase-table caption {
   caption-side: top;
   text-align: left;
-  color: var(--muted);
-  font-size: 0.82rem;
+  color: var(--text);
+  font-size: 0.95rem;
   padding: 0 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .showcase-table th {

@@ -51,6 +51,22 @@ export function formatVolume(value: number | null): string {
   return value.toFixed(2);
 }
 
+export function applyTickerToLastBar(bars: OhlcBar[], ticker?: Ticker): OhlcBar[] {
+  const price = num(ticker?.price);
+  if (!bars.length || price == null) return bars;
+  const last = bars[bars.length - 1];
+  if (last.close === price && last.high >= price && last.low <= price) return bars;
+  return [
+    ...bars.slice(0, -1),
+    {
+      ...last,
+      close: price,
+      high: Math.max(last.high, price),
+      low: Math.min(last.low, price),
+    },
+  ];
+}
+
 export function formatChange(value: number | null): string {
   if (value == null) return "—";
   const sign = value > 0 ? "+" : "";

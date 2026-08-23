@@ -1,18 +1,23 @@
 import { Link } from "react-router-dom";
 import { layoutCandleChart } from "../chart.ts";
-import { landingExamples } from "../landingExamples.ts";
+import { LANDING_NAMES, LANDING_PRODUCTS } from "../landingExamples.ts";
 import { formatChange, formatPrice, formatVolume } from "../landingQuotes.ts";
+import type { OhlcBar } from "../parse.ts";
 import { sma } from "../studies.ts";
 import { useLandingQuotes } from "../useLandingQuotes.ts";
 
-function MiniSpot({ bars }: { bars: ReturnType<typeof landingExamples>[number]["bars"] }) {
+function MiniSpot({ bars }: { bars: OhlcBar[] }) {
   const closes = bars.map((bar) => bar.close);
-  const layout = layoutCandleChart(bars, 420, 150, 300, {
+  const layout = layoutCandleChart(bars, 420, 150, 60, {
     overlays: [{ id: "sma20", className: "sma20", values: sma(closes, 8) }],
     volSma: null,
     rsi: null,
     macd: null,
   });
+
+  if (bars.length === 0) {
+    return <p className="empty">Waiting for live candles…</p>;
+  }
 
   return (
     <svg className="preview-chart" viewBox={`0 0 ${layout.width} ${layout.height}`} preserveAspectRatio="none">
@@ -49,35 +54,42 @@ function MiniSpot({ bars }: { bars: ReturnType<typeof landingExamples>[number]["
 }
 
 export function LandingCharts() {
-  const rows = landingExamples();
-  const { quotes, status } = useLandingQuotes();
+  const { quotes, charts, status } = useLandingQuotes();
 
   return (
     <section className="showcase">
       <div className="showcase-split">
         <table className="showcase-table">
-          <caption>Spot charts</caption>
+          <caption>
+            <span className={`dot ${status === "live" ? "live" : status === "error" ? "err" : "wait"}`} />
+            Live spot charts
+          </caption>
           <thead>
             <tr>
-              <th>5m candles</th>
+              <th>1m candles</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row.productId}>
-                <td>
-                  <Link className="preview-card" to="/spot">
-                    <div className="preview-head">
-                      <strong>{row.productId}</strong>
-                      <span className="muted">
-                        {row.interval} · {row.name}
-                      </span>
-                    </div>
-                    <MiniSpot bars={row.bars} />
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {LANDING_PRODUCTS.map((productId) => {
+              const quote = quotes.find((row) => row.productId === productId);
+              const up = (quote?.changePct ?? 0) >= 0;
+              return (
+                <tr key={productId}>
+                  <td>
+                    <Link className="preview-card" to="/spot">
+                      <div className="preview-head">
+                        <strong>{productId}</strong>
+                        <span className={quote?.changePct == null ? "muted" : up ? "bid" : "ask"}>
+                          {formatPrice(quote?.close ?? null)} {formatChange(quote?.changePct ?? null)}
+                        </span>
+                      </div>
+                      <p className="muted hint">{LANDING_NAMES[productId]} · live 1m</p>
+                      <MiniSpot bars={charts[productId] || []} />
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

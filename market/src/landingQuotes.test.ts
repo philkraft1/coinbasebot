@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildQuote, formatChange, formatVolume } from "./landingQuotes.ts";
+import { applyTickerToLastBar, buildQuote, formatChange, formatVolume } from "./landingQuotes.ts";
 
 test("buildQuote prefers live ticker 24h fields and derives open from % change", () => {
   const quote = buildQuote(
@@ -39,6 +39,18 @@ test("buildQuote falls back to candle OHLC when the ticker is still empty", () =
   assert.equal(quote.close, 12);
   assert.equal(quote.volume, 6);
   assert.equal(quote.volume24h, null);
+});
+
+test("applyTickerToLastBar moves the forming candle with the live last price", () => {
+  const bars = [
+    { start: 1, open: 10, high: 11, low: 9, close: 10.5, volume: 2 },
+    { start: 2, open: 10.5, high: 10.8, low: 10.4, close: 10.6, volume: 3 },
+  ];
+  const next = applyTickerToLastBar(bars, { product_id: "ETH-USD", price: "11.2" });
+  assert.equal(next[1].close, 11.2);
+  assert.equal(next[1].high, 11.2);
+  assert.equal(next[1].low, 10.4);
+  assert.equal(next[0].close, 10.5);
 });
 
 test("format helpers compact volume and signed percent", () => {

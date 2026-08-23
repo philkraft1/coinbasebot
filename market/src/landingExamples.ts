@@ -18,6 +18,10 @@ const SPECS = [
 
 export const LANDING_PRODUCTS = SPECS.map((spec) => spec.productId);
 
+export const LANDING_NAMES: Record<string, string> = Object.fromEntries(
+  SPECS.map((spec) => [spec.productId, spec.name]),
+);
+
 function rng(seed: number) {
   let s = seed % 2147483647;
   if (s <= 0) s += 2147483646;
