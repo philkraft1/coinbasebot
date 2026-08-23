@@ -194,7 +194,22 @@ npm run skills:install   # refresh .claude/skills/agentic-wallet
 npm run wallet:status
 npm run wallet:balance
 npm run wallet:show
+npm run db:migrate        # create wallet.events on Neon (needs DATABASE_URL)
+npm run events            # recent wallet events
 ```
+
+## Wallet events (Neon)
+
+Agentic Wallet actions are logged to Neon Postgres — not Coinbase.com fills. Copy `.env.example` to `.env` and set `DATABASE_URL`. Never commit the real URL.
+
+```bash
+npm run db:migrate
+node scripts/run-awal.mjs balance
+npm run events
+npm run events -- --kind trade
+```
+
+`scripts/run-awal.mjs` writes one row after each command (`trade`, `send`, `balance`, `auth_login`, …). OTP codes from `auth verify` are not stored. If Neon is unreachable the wallet command still runs.
 
 ## Commands
 

@@ -27,11 +27,15 @@
     "awal": "node scripts/run-awal.mjs",
     "level2": "node scripts/level2-subscribe.mjs",
     "ws": "node scripts/coinbase-ws.mjs",
-    "test": "node --test scripts/lib/coinbase-ws.test.mjs",
+    "test": "node --test scripts/lib/*.test.mjs",
+    "db:migrate": "node scripts/wallet-events.mjs migrate",
+    "events": "node scripts/wallet-events.mjs list",
+    "events:record": "node scripts/wallet-events.mjs record",
     "market": "npm --prefix market run dev",
     "publish:github": "bash scripts/publish-to-github.sh"
   },
   "dependencies": {
-    "awal": "^2.12.1"
+    "awal": "^2.12.1",
+    "pg": "^8.23.0"
   }
 }
