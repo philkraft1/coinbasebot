@@ -72,6 +72,7 @@ test("signup, login, and saved studies round-trip on the credentials store", asy
     payload: { username: "chart_user", password: "anotherpass" },
   });
   assert.equal(taken.statusCode, 409);
+  assert.equal(taken.json().error, "That username is unavailable.");
 
   await app.close();
 });
@@ -85,7 +86,7 @@ test("signup returns 503 when the auth store is unavailable", async () => {
     payload: { username: "chart_user", password: "hunter2x" },
   });
   assert.equal(res.statusCode, 503, res.body);
-  assert.match(res.json().error, /AUTH_DATABASE_URL/);
+  assert.equal(res.json().error, "Accounts are temporarily unavailable.");
   const health = await app.inject({ method: "GET", url: "/api/health" });
   assert.equal(health.statusCode, 200);
   assert.equal(health.json().store, "unavailable");
@@ -104,10 +105,82 @@ test("session cookies are Secure when AUTH_COOKIE_SECURE=1", async () => {
     });
     assert.equal(signup.statusCode, 201, signup.body);
     const raw = signup.headers["set-cookie"];
-    assert.match(String(Array.isArray(raw) ? raw.join(";") : raw), /Secure/i);
+    const setCookie = String(Array.isArray(raw) ? raw.join(";") : raw);
+    assert.match(setCookie, /Secure/i);
+    assert.match(setCookie, /HttpOnly/i);
+    assert.match(setCookie, /SameSite=Strict/i);
+
+    const logout = await app.inject({
+      method: "POST",
+      url: "/api/logout",
+      headers: { cookie: cookieHeader(signup) },
+    });
+    const cleared = String(
+      Array.isArray(logout.headers["set-cookie"])
+        ? logout.headers["set-cookie"].join(";")
+        : logout.headers["set-cookie"],
+    );
+    assert.match(cleared, /Secure/i);
+    assert.match(cleared, /HttpOnly/i);
+    assert.match(cleared, /SameSite=Strict/i);
+    assert.match(cleared, /Max-Age=0/i);
     await app.close();
   } finally {
     if (prev === undefined) delete process.env.AUTH_COOKIE_SECURE;
     else process.env.AUTH_COOKIE_SECURE = prev;
   }
+});
+
+test("mutating auth requests reject cross-origin browser calls", async () => {
+  const app = await startApp();
+  const blocked = await app.inject({
+    method: "POST",
+    url: "/api/signup",
+    headers: { host: "127.0.0.1:43148", origin: "https://evil.example" },
+    payload: { username: "origin_user", password: "hunter2x" },
+  });
+  assert.equal(blocked.statusCode, 403);
+  assert.equal(blocked.json().error, "Request origin is not allowed.");
+
+  const allowed = await app.inject({
+    method: "POST",
+    url: "/api/signup",
+    headers: { host: "127.0.0.1:43148", origin: "http://127.0.0.1:43148" },
+    payload: { username: "origin_user", password: "hunter2x" },
+  });
+  assert.equal(allowed.statusCode, 201, allowed.body);
+  await app.close();
+});
+
+test("oversized requests fail safely without reflecting parser details", async () => {
+  const app = await startApp();
+  const response = await app.inject({
+    method: "POST",
+    url: "/api/login",
+    payload: { username: "size_user", password: "x".repeat(70_000) },
+  });
+  assert.equal(response.statusCode, 413);
+  assert.equal(response.json().error, "Request body is too large.");
+  assert.equal(response.headers["cache-control"], "no-store");
+  assert.equal(response.headers["x-content-type-options"], "nosniff");
+  await app.close();
+});
+
+test("parallel duplicate signup returns a conflict instead of a database error", async () => {
+  const app = await startApp();
+  const request = {
+    method: "POST" as const,
+    url: "/api/signup",
+    payload: { username: "race_user", password: "hunter2x" },
+  };
+  const responses = await Promise.all([app.inject(request), app.inject(request)]);
+  assert.deepEqual(
+    responses.map((response) => response.statusCode).sort(),
+    [201, 409],
+  );
+  assert.equal(
+    responses.find((response) => response.statusCode === 409)?.json().error,
+    "That username is unavailable.",
+  );
+  await app.close();
 });

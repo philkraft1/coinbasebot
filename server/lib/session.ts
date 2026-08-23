@@ -5,7 +5,10 @@ import { jwtVerify, SignJWT } from "jose";
 import { isServerlessRuntime } from "./runtime.ts";
 
 export const SESSION_COOKIE = "cb_session";
-export const SESSION_TTL_SEC = 60 * 60 * 24 * 7;
+export const SESSION_TTL_SEC = 60 * 60 * 24;
+export const MIN_SESSION_SECRET_BYTES = 32;
+const SESSION_ISSUER = "ivory-auth";
+const SESSION_AUDIENCE = "ivory-web";
 
 export type SessionUser = { id: string; username: string };
 
@@ -22,7 +25,13 @@ function persistDevSecret(filePath: string): string {
 
 export function sessionSecret(devSecretPath = ".data/session.secret"): Uint8Array {
   const fromEnv = (process.env.AUTH_SESSION_SECRET || "").trim();
-  if (fromEnv) return new TextEncoder().encode(fromEnv);
+  if (fromEnv) {
+    const encoded = new TextEncoder().encode(fromEnv);
+    if (encoded.byteLength < MIN_SESSION_SECRET_BYTES) {
+      throw new Error(`AUTH_SESSION_SECRET must be at least ${MIN_SESSION_SECRET_BYTES} bytes.`);
+    }
+    return encoded;
+  }
   if (isServerlessRuntime()) {
     throw new Error("AUTH_SESSION_SECRET is required in production (Vercel / serverless).");
   }
@@ -33,15 +42,20 @@ export async function signSession(user: SessionUser, secret = sessionSecret()): 
   return new SignJWT({ username: user.username })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.id)
+    .setIssuer(SESSION_ISSUER)
+    .setAudience(SESSION_AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(`${SESSION_TTL_SEC}s`)
     .sign(createSecretKey(secret));
 }
 
-export async function readSession(token: string | undefined, secret = sessionSecret()): Promise<SessionUser | null> {
+export async function readSession(token: string | undefined, secret?: Uint8Array): Promise<SessionUser | null> {
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, createSecretKey(secret));
+    const { payload } = await jwtVerify(token, createSecretKey(secret ?? sessionSecret()), {
+      issuer: SESSION_ISSUER,
+      audience: SESSION_AUDIENCE,
+    });
     const id = typeof payload.sub === "string" ? payload.sub : "";
     const username = typeof payload.username === "string" ? payload.username : "";
     if (!id || !username) return null;

@@ -21,8 +21,16 @@ test("production auth requires a dedicated URL and session secret", () => {
     productionAuthError({
       VERCEL: "1",
       AUTH_DATABASE_URL: "postgres://auth_app@db/auth",
-      AUTH_SESSION_SECRET: "unit-test-secret",
+      AUTH_SESSION_SECRET: "unit-test-secret-with-at-least-32-bytes",
     }),
     null,
+  );
+  assert.match(
+    productionAuthError({
+      VERCEL: "1",
+      AUTH_DATABASE_URL: "postgres://auth_app@db/auth",
+      AUTH_SESSION_SECRET: "weak",
+    }) || "",
+    /32 random bytes/,
   );
 });
