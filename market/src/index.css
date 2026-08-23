@@ -284,6 +284,32 @@ body {
   display: block;
 }
 
+.preview-chart .wick.up,
+.preview-chart .body.up {
+  stroke: var(--bid);
+  fill: var(--bid);
+}
+
+.preview-chart .wick.down,
+.preview-chart .body.down {
+  stroke: var(--ask);
+  fill: var(--ask);
+}
+
+.preview-chart .wick {
+  stroke-width: 2;
+}
+
+.preview-chart .vol.up {
+  fill: var(--bid);
+  opacity: 0.4;
+}
+
+.preview-chart .vol.down {
+  fill: var(--ask);
+  opacity: 0.4;
+}
+
 .price-line {
   fill: none;
   stroke-width: 2;
