@@ -7,7 +7,7 @@ export function Home() {
 
   return (
     <main className="page home">
-      <p className="eyebrow">Coinbase Advanced Trade</p>
+      <p className="eyebrow">Ivory</p>
       <h1>Live top-10 USD spot charts</h1>
       <p className="lede">
         Watch the market, keep your studies, and customize the terminal. Public Coinbase data streams

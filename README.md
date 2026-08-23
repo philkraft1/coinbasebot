@@ -1,4 +1,4 @@
-# Coinbase Agentic Wallet (coinbasebot)
+# Ivory (coinbasebot)
 
 Public repo: [https://github.com/philkraft1/coinbasebot](https://github.com/philkraft1/coinbasebot)
 
