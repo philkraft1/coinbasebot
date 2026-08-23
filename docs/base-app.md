@@ -2,7 +2,7 @@
 
 The Base App (after April 9, 2026) treats this repo as a **standard web app + wallet**. There is no MiniKit / `farcaster.json` path. Discovery is [Base.dev](https://www.base.dev).
 
-Charts stay public. Username login still saves studies. **Connect wallet** uses wagmi `injected` + `baseAccount` so the Base in-app browser can attach a Base Account.
+Charts stay public. Username login still saves studies. Base Account / Connect wallet is omitted for now so Base.dev can load a plain web page.
 
 ## Production host (Vercel)
 

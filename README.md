@@ -219,7 +219,7 @@ npm run auth:migrate
 npm run auth
 ```
 
-Set `AUTH_SESSION_SECRET` and `AUTH_COOKIE_SECURE=1` in production (Vercel also sets Secure cookies when `VERCEL=1`). Routes: `/` Home, `/spot` charts, `/login` signup and login. The nav **Connect wallet** button is optional and does not gate charts.
+Set `AUTH_SESSION_SECRET` and `AUTH_COOKIE_SECURE=1` in production (Vercel also sets Secure cookies when `VERCEL=1`). Routes: `/` Home, `/spot` charts, `/login` signup and login. Charts are not gated.
 
 ## Wallet events (Neon)
 
