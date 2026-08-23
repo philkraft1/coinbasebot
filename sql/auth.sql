@@ -1,6 +1,7 @@
 -- Username accounts + saved chart prefs.
--- Production store: encrypted AWS RDS (see infra/auth-rds.yaml).
--- Do not reuse Neon DATABASE_URL (wallet.events). Apply with:
+-- Production store: encrypted AWS RDS (see infra/auth-rds.yaml) or a dedicated
+-- Neon database created only for auth.*. Do not reuse Neon DATABASE_URL (wallet.events).
+-- Apply with:
 --   AUTH_DATABASE_URL=... npm run auth:migrate
 -- PGlite (local/dev without RDS) runs this file only — skip auth-security.sql.
 

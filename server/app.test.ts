@@ -75,3 +75,39 @@ test("signup, login, and saved studies round-trip on the credentials store", asy
 
   await app.close();
 });
+
+test("signup returns 503 when the auth store is unavailable", async () => {
+  const { createUnavailableStore } = await import("./lib/store.ts");
+  const { app } = await buildApp({ store: createUnavailableStore() });
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/signup",
+    payload: { username: "chart_user", password: "hunter2x" },
+  });
+  assert.equal(res.statusCode, 503, res.body);
+  assert.match(res.json().error, /AUTH_DATABASE_URL/);
+  const health = await app.inject({ method: "GET", url: "/api/health" });
+  assert.equal(health.statusCode, 200);
+  assert.equal(health.json().store, "unavailable");
+  await app.close();
+});
+
+test("session cookies are Secure when AUTH_COOKIE_SECURE=1", async () => {
+  const prev = process.env.AUTH_COOKIE_SECURE;
+  process.env.AUTH_COOKIE_SECURE = "1";
+  try {
+    const app = await startApp();
+    const signup = await app.inject({
+      method: "POST",
+      url: "/api/signup",
+      payload: { username: "secure_user", password: "hunter2x" },
+    });
+    assert.equal(signup.statusCode, 201, signup.body);
+    const raw = signup.headers["set-cookie"];
+    assert.match(String(Array.isArray(raw) ? raw.join(";") : raw), /Secure/i);
+    await app.close();
+  } finally {
+    if (prev === undefined) delete process.env.AUTH_COOKIE_SECURE;
+    else process.env.AUTH_COOKIE_SECURE = prev;
+  }
+});

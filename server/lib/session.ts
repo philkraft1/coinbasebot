@@ -2,6 +2,7 @@ import { createSecretKey, randomBytes } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { jwtVerify, SignJWT } from "jose";
+import { isServerlessRuntime } from "./runtime.ts";
 
 export const SESSION_COOKIE = "cb_session";
 export const SESSION_TTL_SEC = 60 * 60 * 24 * 7;
@@ -21,8 +22,11 @@ function persistDevSecret(filePath: string): string {
 
 export function sessionSecret(devSecretPath = ".data/session.secret"): Uint8Array {
   const fromEnv = (process.env.AUTH_SESSION_SECRET || "").trim();
-  const raw = fromEnv || persistDevSecret(devSecretPath);
-  return new TextEncoder().encode(raw);
+  if (fromEnv) return new TextEncoder().encode(fromEnv);
+  if (isServerlessRuntime()) {
+    throw new Error("AUTH_SESSION_SECRET is required in production (Vercel / serverless).");
+  }
+  return new TextEncoder().encode(persistDevSecret(devSecretPath));
 }
 
 export async function signSession(user: SessionUser, secret = sessionSecret()): Promise<string> {

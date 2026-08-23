@@ -1,6 +1,6 @@
 # Encrypted RDS for username credentials
 
-This stack provisions a **new** PostgreSQL 16 database for signup/login hashes and saved chart prefs. It is not the Neon `wallet.events` database (`DATABASE_URL`).
+This stack provisions a **new** PostgreSQL 16 database for signup/login hashes and saved chart prefs. It is not the Neon `wallet.events` database (`DATABASE_URL`). A dedicated Neon project used only for `auth.*` is an acceptable production stand-in when you are not deploying this stack; still never reuse wallet `DATABASE_URL`.
 
 AWS protocols used:
 

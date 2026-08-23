@@ -64,6 +64,8 @@ npm run ws              # default: level2 + heartbeats, pretty-printed
 
 The Vite UI proxies `/api` to the auth server. Start `npm run auth` before using Login / Signup. Guests can still open Spot; signed-in users save studies and chart prefs.
 
+To put the same UI on a public HTTPS URL for the **Base App**, deploy with Vercel (`vercel.json`) and register the primary URL on [Base.dev](https://www.base.dev). See [docs/base-app.md](docs/base-app.md).
+
 ```bash
 copy .env.example .env   # then put your real key name + EC private key in .env
 npm run ws -- --channel ticker --products BTC-USD
@@ -205,7 +207,7 @@ npm run events            # recent wallet events
 
 ## Accounts and saved studies (RDS)
 
-Username/password accounts are stored in a **separate** Postgres database from Neon `wallet.events`. Production is encrypted Amazon RDS (KMS at rest, TLS required, master password in Secrets Manager). See [infra/README.md](infra/README.md) and [infra/auth-rds.yaml](infra/auth-rds.yaml).
+Username/password accounts are stored in a **separate** Postgres database from Neon `wallet.events`. Production is encrypted Amazon RDS (KMS at rest, TLS required, master password in Secrets Manager) **or** a dedicated Neon database created only for `auth.*`. Never point `AUTH_DATABASE_URL` at wallet `DATABASE_URL`. See [infra/README.md](infra/README.md), [infra/auth-rds.yaml](infra/auth-rds.yaml), and [docs/base-app.md](docs/base-app.md).
 
 ```bash
 # Local / cloud VM (no AWS): omit AUTH_DATABASE_URL — uses .data/auth
@@ -217,7 +219,7 @@ npm run auth:migrate
 npm run auth
 ```
 
-Set `AUTH_SESSION_SECRET` in production. Routes: `/` Home, `/spot` charts, `/login` signup and login.
+Set `AUTH_SESSION_SECRET` and `AUTH_COOKIE_SECURE=1` in production (Vercel also sets Secure cookies when `VERCEL=1`). Routes: `/` Home, `/spot` charts, `/login` signup and login. The nav **Connect wallet** button is optional and does not gate charts.
 
 ## Wallet events (Neon)
 
