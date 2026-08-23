@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { test } from "node:test";
-import { classifyAwalArgs, redactArgs } from "./wallet-events.mjs";
+import {
+  buildPooledAppUrl,
+  classifyAwalArgs,
+  normalizeDatabaseUrl,
+  redactArgs,
+} from "./wallet-events.mjs";
 
 test("redacts OTP on auth verify", () => {
   assert.deepEqual(redactArgs(["auth", "verify", "123456"]), ["auth", "verify", "[redacted]"]);
@@ -29,4 +37,35 @@ test("classifies auth login email and never stores the OTP", () => {
   assert.equal(verify.kind, "auth_verify");
   assert.match(verify.command, /\[redacted\]/);
   assert.equal(verify.command.includes("999111"), false);
+});
+
+test("normalizeDatabaseUrl forces verify-full and drops channel_binding", () => {
+  const url = normalizeDatabaseUrl(
+    "postgresql://u:p@host/neondb?sslmode=require&channel_binding=require",
+  );
+  assert.match(url, /sslmode=verify-full/);
+  assert.equal(url.includes("channel_binding"), false);
+});
+
+test("buildPooledAppUrl switches user to wallet_app and adds -pooler", () => {
+  const url = buildPooledAppUrl(
+    "postgresql://neondb_owner:secret@ep-example.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require",
+    "app-pass",
+  );
+  const parsed = new URL(url);
+  assert.equal(parsed.username, "wallet_app");
+  assert.equal(parsed.password, "app-pass");
+  assert.equal(parsed.hostname, "ep-example-pooler.c-4.us-east-2.aws.neon.tech");
+});
+
+test("security migration enables FORCE RLS and revokes PUBLIC", () => {
+  const sql = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), "../../sql/wallet-security.sql"),
+    "utf8",
+  );
+  assert.match(sql, /enable row level security/i);
+  assert.match(sql, /force row level security/i);
+  assert.match(sql, /revoke all on schema wallet from public/i);
+  assert.match(sql, /grant select, insert on table wallet.events to wallet_app/i);
+  assert.equal(/grant\s+(all|update|delete)/i.test(sql), false);
 });

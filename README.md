@@ -194,13 +194,13 @@ npm run skills:install   # refresh .claude/skills/agentic-wallet
 npm run wallet:status
 npm run wallet:balance
 npm run wallet:show
-npm run db:migrate        # create wallet.events on Neon (needs DATABASE_URL)
+npm run db:migrate        # wallet.events + RLS (needs DATABASE_URL_UNPOOLED)
 npm run events            # recent wallet events
 ```
 
 ## Wallet events (Neon)
 
-Agentic Wallet actions are logged to Neon Postgres — not Coinbase.com fills. Copy `.env.example` to `.env` and set `DATABASE_URL`. Never commit the real URL.
+Agentic Wallet actions are logged to Neon Postgres — not Coinbase.com fills. Copy `.env.example` to `.env`. Set `DATABASE_URL_UNPOOLED` (owner, migrate) and `DATABASE_URL` (pooled `wallet_app`, runtime). Never commit the real URLs.
 
 ```bash
 npm run db:migrate
