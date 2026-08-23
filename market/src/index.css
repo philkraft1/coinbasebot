@@ -50,11 +50,22 @@ code {
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr;
+  margin-bottom: 16px;
 }
 
 @media (min-width: 900px) {
   .row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .row.triple {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 899px) {
+  .row.triple {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -64,6 +75,15 @@ code {
   border-radius: 12px;
   padding: 14px;
   min-height: 280px;
+}
+
+.panel.compact {
+  min-height: 180px;
+}
+
+.panel.seq {
+  min-height: 0;
+  margin-bottom: 16px;
 }
 
 .panel h2 {
@@ -91,9 +111,11 @@ code {
 .dot.live {
   background: var(--bid);
 }
+
 .dot.wait {
   background: var(--warn);
 }
+
 .dot.err {
   background: var(--ask);
 }
@@ -101,6 +123,22 @@ code {
 .spread {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+
+.warn {
+  color: var(--warn);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.toggle {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--text);
+  font-size: 0.9rem;
 }
 
 table {
@@ -129,6 +167,7 @@ th {
 .bid {
   color: var(--bid);
 }
+
 .ask {
   color: var(--ask);
 }
@@ -141,4 +180,29 @@ th {
 .error {
   border-color: #5a2a32;
   color: #ffc1c7;
+  min-height: 0;
+  margin-bottom: 16px;
+}
+
+.status-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.stack {
+  display: grid;
+  gap: 6px;
+}
+
+.candle {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+pre {
+  margin: 0;
+  overflow: auto;
 }

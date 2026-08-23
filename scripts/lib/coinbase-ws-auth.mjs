@@ -4,18 +4,44 @@ import { resolve } from "node:path";
 
 export const WS_API_URL = "wss://advanced-trade-ws.coinbase.com";
 
+/** Catalog names plus the `tickers` alias used in older docs samples. */
 export const CHANNEL_NAMES = {
-  level2: "level2",
-  user: "user",
+  heartbeats: "heartbeats",
+  candles: "candles",
+  status: "status",
+  ticker: "ticker",
   tickers: "ticker",
   ticker_batch: "ticker_batch",
-  status: "status",
+  level2: "level2",
   market_trades: "market_trades",
-  candles: "candles",
-  heartbeats: "heartbeats",
+  user: "user",
+  futures_balance_summary: "futures_balance_summary",
 };
 
-const PRIVATE_CHANNELS = new Set(["user", "futures_balance_summary"]);
+export const PRIVATE_CHANNELS = new Set(["user", "futures_balance_summary"]);
+
+/** Docs: these subscribe frames are `{ type, channel }` only. */
+export const CHANNELS_WITHOUT_PRODUCTS = new Set([
+  "heartbeats",
+  "futures_balance_summary",
+]);
+
+/** Public books reject most `-USDC` pairs. */
+export const USDC_ALLOWED_PUBLIC = new Set(["USDT-USDC", "EURC-USDC"]);
+
+export function knownChannelValues() {
+  return [...new Set(Object.values(CHANNEL_NAMES))];
+}
+
+export function resolveChannelName(name) {
+  if (CHANNEL_NAMES[name]) return CHANNEL_NAMES[name];
+  if (Object.values(CHANNEL_NAMES).includes(name)) return name;
+  throw new Error(`Unknown channel "${name}". Use: ${knownChannelValues().join(", ")}`);
+}
+
+export function isPrivateChannel(channelName) {
+  return PRIVATE_CHANNELS.has(resolveChannelName(channelName));
+}
 
 export function loadDotEnv(file = ".env") {
   const path = resolve(file);
@@ -100,19 +126,47 @@ export function signWithJWT(message, credentials = readCdpCredentials()) {
   return { ...message, jwt };
 }
 
-export function channelMessage(type, channelName, products, credentials = readCdpCredentials()) {
-  const message = {
-    type,
-    channel: channelName,
-    product_ids: products,
-  };
-  if (PRIVATE_CHANNELS.has(channelName) && !credentials.ready) {
-    throw new Error(`Channel "${channelName}" requires a real CDP JWT.`);
+export function assertPublicProductIds(products) {
+  const bad = (products || []).filter((id) => {
+    const upper = String(id).toUpperCase();
+    return upper.endsWith("-USDC") && !USDC_ALLOWED_PUBLIC.has(upper);
+  });
+  if (bad.length) {
+    throw new Error(
+      `Public channels reject ${bad.join(", ")}. Only USDT-USDC and EURC-USDC are allowed among -USDC pairs.`,
+    );
+  }
+}
+
+/**
+ * Build a subscribe/unsubscribe frame.
+ * Always mints a fresh JWT when CDP credentials are present (2 minute expiry).
+ * Never reuse a previously signed object.
+ */
+export function channelMessage(type, channelName, products = [], credentials = readCdpCredentials()) {
+  const channel = resolveChannelName(channelName);
+  const message = { type, channel };
+
+  if (!CHANNELS_WITHOUT_PRODUCTS.has(channel)) {
+    const ids = Array.isArray(products) ? products.map((id) => String(id).trim()).filter(Boolean) : [];
+    if (channel === "user") {
+      if (ids.length > 0) message.product_ids = ids;
+    } else {
+      assertPublicProductIds(ids);
+      message.product_ids = ids;
+    }
+  }
+
+  if (PRIVATE_CHANNELS.has(channel) && !credentials.ready) {
+    throw new Error(
+      `Channel "${channel}" requires a real CDP JWT. Set COINBASE_API_KEY_NAME and COINBASE_API_PRIVATE_KEY.`,
+    );
   }
   if (credentials.ready) return signWithJWT(message, credentials);
   return message;
 }
 
-export function isPrivateChannel(channelName) {
-  return PRIVATE_CHANNELS.has(channelName);
+export function redactJwt(message) {
+  if (!message || !message.jwt) return message;
+  return { ...message, jwt: "[redacted]" };
 }
