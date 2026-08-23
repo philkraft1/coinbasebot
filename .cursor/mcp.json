@@ -3,6 +3,9 @@
     "payments-mcp": {
       "command": "node",
       "args": ["scripts/run-payments-mcp.mjs"]
+    },
+    "neon": {
+      "url": "https://mcp.neon.tech/mcp"
     }
   }
 }
