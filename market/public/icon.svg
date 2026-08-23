@@ -1,10 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Coinbasebot">
-  <rect width="512" height="512" rx="96" fill="#07090c"/>
-  <rect x="88" y="88" width="336" height="336" rx="48" fill="#121820" stroke="#243040" stroke-width="16"/>
-  <rect x="156" y="248" width="40" height="120" rx="8" fill="#3dd68c"/>
-  <rect x="236" y="176" width="40" height="192" rx="8" fill="#3dd68c"/>
-  <rect x="316" y="208" width="40" height="160" rx="8" fill="#ff6b7a"/>
-  <line x1="176" y1="220" x2="176" y2="380" stroke="#3dd68c" stroke-width="10" stroke-linecap="round"/>
-  <line x1="256" y1="148" x2="256" y2="380" stroke="#3dd68c" stroke-width="10" stroke-linecap="round"/>
-  <line x1="336" y1="176" x2="336" y2="384" stroke="#ff6b7a" stroke-width="10" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Ivory">
+  <rect width="512" height="512" rx="112" fill="#0c1014"/>
+  <path
+    fill="#f3ede2"
+    d="M256 78l46 36h54c14 0 22 16 14 28l-28 52v154c0 36-28 64-64 64h-44c-36 0-64-28-64-64V194l-28-52c-8-12 0-28 14-28h54l46-36z"
+  />
+  <path
+    fill="none"
+    stroke="#c9a86a"
+    stroke-width="10"
+    stroke-linejoin="round"
+    d="M256 118l32 26h38l-22 40v148c0 24-18 42-42 42h-12c-24 0-42-18-42-42V184l-22-40h38l32-26z"
+  />
 </svg>

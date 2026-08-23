@@ -8,7 +8,8 @@ export function NavBar() {
   return (
     <nav className="navbar">
       <div className="nav-brand">
-        <strong>Coinbasebot</strong>
+        <img className="nav-logo" src="/ivory-logo.png" width={36} height={36} alt="" />
+        <strong>Ivory</strong>
         <span className="muted">Live charts</span>
       </div>
       <div className="nav-links">
