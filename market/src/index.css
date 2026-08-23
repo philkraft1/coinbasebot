@@ -92,14 +92,220 @@ body {
   min-height: 0;
 }
 
-.candle-strip {
+.candle-chart {
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.chart-head h2 {
+  margin: 0;
+}
+
+.chart-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 6px 0 4px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  background: #0d1218;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.chip.on {
+  color: var(--text);
+  border-color: #4a6a8a;
+  background: var(--selected);
+}
+
+.custom-min {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.custom-min input,
+.studies-pop input[type="number"] {
+  width: 52px;
+  background: #0d1218;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.studies-wrap {
+  position: relative;
+}
+
+.studies-pop {
+  position: absolute;
+  right: 0;
+  top: 28px;
+  z-index: 5;
+  min-width: 220px;
+  background: var(--chrome);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: grid;
+  gap: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.studies-pop label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.hint {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+}
+
+.overlay {
+  fill: none;
+  stroke-width: 1.4;
+}
+
+.overlay.sma20 {
+  stroke: #7eb6ff;
+}
+
+.overlay.sma50 {
+  stroke: #f5c16c;
+}
+
+.overlay.sma200 {
+  stroke: #c9a0ff;
+}
+
+.overlay.ema12 {
+  stroke: #5ad7c8;
+}
+
+.overlay.ema26 {
+  stroke: #ff9f6b;
+}
+
+.overlay.bb-mid,
+.overlay.bb-band {
+  stroke: #8b9aab;
+}
+
+.overlay.bb-band {
+  stroke-dasharray: 3 3;
+}
+
+.overlay.vwap {
+  stroke: #e8eef4;
+}
+
+.overlay.vol-sma {
+  stroke: #7eb6ff;
+  stroke-width: 1.1;
+}
+
+.overlay.rsi {
+  stroke: #e2b0ff;
+}
+
+.overlay.macd {
+  stroke: #7eb6ff;
+}
+
+.overlay.macd-sig {
+  stroke: #f5c16c;
+}
+
+.macd-hist.up {
+  fill: var(--bid);
+  opacity: 0.45;
+}
+
+.macd-hist.down {
+  fill: var(--ask);
+  opacity: 0.45;
 }
 
 .candle {
   margin: 0;
   font-variant-numeric: tabular-nums;
   color: var(--text);
+}
+
+.chart {
+  flex: 1;
+  width: 100%;
+  min-height: 160px;
+}
+
+.chart .grid {
+  stroke: #243040;
+  stroke-width: 1;
+}
+
+.chart .axis {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.chart .axis.time {
+  text-anchor: middle;
+}
+
+.chart .wick.up,
+.chart .body.up {
+  stroke: var(--bid);
+  fill: var(--bid);
+}
+
+.chart .wick.down,
+.chart .body.down {
+  stroke: var(--ask);
+  fill: var(--ask);
+}
+
+.chart .wick {
+  stroke-width: 1.5;
+}
+
+.chart .vol.up {
+  fill: var(--bid);
+  opacity: 0.35;
+}
+
+.chart .vol.down {
+  fill: var(--ask);
+  opacity: 0.35;
 }
 
 .status {

@@ -21,7 +21,7 @@ import {
   type Trade,
 } from "./parse";
 import { BookPanel } from "./panels/BookPanel";
-import { CandleStrip } from "./panels/CandleStrip";
+import { CandleChart } from "./panels/CandleChart";
 import { TradesPanel } from "./panels/TradesPanel";
 import { Watchlist } from "./panels/Watchlist";
 import { useTopUsdSpot } from "./useTopUsdSpot";
@@ -237,7 +237,7 @@ export function App() {
         statuses={statuses}
         onFocus={setFocused}
       />
-      <CandleStrip productId={focused} raw={candles} />
+      <CandleChart productId={focused} raw={candles} />
       <div className="workspace">
         <TradesPanel productId={focused} trades={trades} />
         <BookPanel productId={focused} bids={book.bids} asks={book.asks} stale={staleBook} />
