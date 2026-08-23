@@ -31,7 +31,7 @@ type Status = "connecting" | "live" | "error";
 const PUBLIC_CHANNELS = ["ticker", "market_trades", "candles", "status"] as const;
 
 export function App() {
-  const products = useTopUsdSpot();
+  const { products, source } = useTopUsdSpot();
   const [focused, setFocused] = useState(products[0]);
 
   useEffect(() => {
@@ -216,7 +216,7 @@ export function App() {
         <div className="brand">
           <span className={`dot ${status === "live" ? "live" : status === "error" ? "err" : "wait"}`} />
           <strong>Coinbase</strong>
-          <span className="muted">Top 10 USD spot</span>
+          <span className="muted">Top 10 USD spot · {source}</span>
         </div>
         <div className="meta">
           <span>{focused}</span>

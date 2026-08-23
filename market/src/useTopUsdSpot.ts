@@ -8,6 +8,7 @@ import {
 
 export function useTopUsdSpot(refreshMs = REFRESH_MS) {
   const [products, setProducts] = useState<string[]>([...FALLBACK_TOP_USD]);
+  const [source, setSource] = useState<"live" | "fallback">("fallback");
 
   useEffect(() => {
     let cancelled = false;
@@ -17,6 +18,7 @@ export function useTopUsdSpot(refreshMs = REFRESH_MS) {
         const next = await fetchTopUsdSpot();
         if (cancelled) return;
         setProducts((prev) => (productsEqual(prev, next) ? prev : next));
+        setSource("live");
       } catch {
         // Keep the current list (fallback on first load).
       }
@@ -30,5 +32,5 @@ export function useTopUsdSpot(refreshMs = REFRESH_MS) {
     };
   }, [refreshMs]);
 
-  return products;
+  return { products, source };
 }

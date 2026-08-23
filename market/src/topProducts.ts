@@ -14,7 +14,8 @@ export const FALLBACK_TOP_USD = [
   "SHIB-USD",
 ] as const;
 
-export const PRODUCTS_URL = "https://api.coinbase.com/api/v3/brokerage/market/products";
+/** Same-origin Vite proxy — Coinbase's public products API has no browser CORS allowlist. */
+export const PRODUCTS_URL = "/coinbase-api/api/v3/brokerage/market/products";
 export const REFRESH_MS = 5 * 60 * 1000;
 
 export type CatalogProduct = {
