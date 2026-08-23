@@ -9,21 +9,17 @@
  *   node scripts/level2-subscribe.mjs
  *   JWT=$(node scripts/build-ws-jwt.mjs) node scripts/level2-subscribe.mjs
  */
-const WS_URL = "wss://advanced-trade-ws.coinbase.com";
+import {
+  WS_API_URL,
+  channelMessage,
+  loadDotEnv,
+  readCdpCredentials,
+} from "./lib/coinbase-ws-auth.mjs";
+
+loadDotEnv();
 const PRODUCT_IDS = ["ETH-USD", "ETH-EUR"];
-
-function subscribeMessage(channel, jwt) {
-  const message = {
-    type: "subscribe",
-    product_ids: PRODUCT_IDS,
-    channel,
-  };
-  if (jwt && jwt !== "exampleJWT") message.jwt = jwt;
-  return message;
-}
-
-const jwt = process.env.JWT || process.env.COINBASE_WS_JWT || "";
-const ws = new WebSocket(WS_URL);
+const credentials = readCdpCredentials();
+const ws = new WebSocket(WS_API_URL);
 const books = new Map(PRODUCT_IDS.map((id) => [id, { bids: new Map(), asks: new Map() }]));
 
 function applyUpdates(productId, type, updates) {
@@ -53,10 +49,12 @@ function printTop() {
 }
 
 ws.addEventListener("open", () => {
-  console.log("Connected", WS_URL);
-  console.log("Subscribe:", JSON.stringify(subscribeMessage("level2", jwt), null, 2));
-  ws.send(JSON.stringify(subscribeMessage("level2", jwt)));
-  ws.send(JSON.stringify(subscribeMessage("heartbeats", jwt)));
+  const level2 = channelMessage("subscribe", "level2", PRODUCT_IDS, credentials);
+  const heartbeats = channelMessage("subscribe", "heartbeats", PRODUCT_IDS, credentials);
+  console.log("Connected", WS_API_URL);
+  console.log(credentials.ready ? "JWT: signed (CDP key)" : "JWT: omitted (public channel)");
+  ws.send(JSON.stringify(level2));
+  ws.send(JSON.stringify(heartbeats));
 });
 
 ws.addEventListener("message", (event) => {

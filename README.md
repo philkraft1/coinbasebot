@@ -51,10 +51,20 @@ Do not send `"jwt": "exampleJWT"`. JWT is optional on level2 and only valid if y
 
 ```bash
 npm run market          # live books at http://127.0.0.1:43147
-npm run level2          # same feed in the terminal
+npm run level2          # ETH-USD / ETH-EUR top of book in the terminal
+npm run ws              # official Advanced Trade JS sample (cleaned up)
 ```
 
-Optional JWT: `JWT=$(node scripts/build-ws-jwt.mjs) npm run level2` after setting `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY`.
+Optional CDP JWT (do not paste `exampleJWT` or `YOUR PRIVATE KEY` into the repo):
+
+```bash
+copy .env.example .env   # then put your real key name + EC private key in .env
+npm run ws -- --channel level2 --products ETH-USD,ETH-EUR
+npm run ws -- --channel ticker --products BTC-USD
+npm run ws -- --log feed.jsonl
+```
+
+`scripts/coinbase-ws.mjs` is the docs JS example without the 5-second BTC-USD unsubscribe and without writing `Output1.txt` unless you pass `--log`. Public channels work with no key. The `user` channel requires a real CDP JWT.
 
 ## Coinbase.com vs this wallet
 
