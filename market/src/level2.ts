@@ -1,6 +1,4 @@
 export const WS_URL = "wss://advanced-trade-ws.coinbase.com";
-export const DEFAULT_PRODUCTS = ["ETH-USD", "ETH-EUR"] as const;
-export const OPTIONAL_PRODUCT = "BTC-USD";
 
 export type BookSide = Map<string, number>;
 

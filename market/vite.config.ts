@@ -7,5 +7,12 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 43147,
     strictPort: true,
+    proxy: {
+      "/coinbase-api": {
+        target: "https://api.coinbase.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/coinbase-api/, ""),
+      },
+    },
   },
 });

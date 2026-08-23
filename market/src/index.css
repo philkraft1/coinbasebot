@@ -1,13 +1,15 @@
 :root {
   color-scheme: dark;
-  --bg: #0c1014;
-  --panel: #141a21;
+  --bg: #07090c;
+  --chrome: #0d1218;
+  --panel: #121820;
   --line: #243040;
   --text: #e8eef4;
   --muted: #8b9aab;
   --bid: #3dd68c;
   --ask: #ff6b7a;
   --warn: #f5c16c;
+  --selected: #1b2a3d;
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
 }
 
@@ -19,76 +21,85 @@ html,
 body,
 #root {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
   background: var(--bg);
   color: var(--text);
 }
 
 body {
-  padding: 16px;
+  padding: 0;
+  overflow: hidden;
 }
 
-h1 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 6px;
-}
-
-p {
-  margin: 0 0 12px;
-  color: var(--muted);
-  line-height: 1.45;
-}
-
-code {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 0.86em;
-  color: #c9d6e3;
-}
-
-.row {
+.terminal {
+  height: 100%;
   display: grid;
+  grid-template-rows: auto auto minmax(220px, 34%) auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 16px;
-  grid-template-columns: 1fr;
-  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--chrome);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-height: 44px;
 }
 
-@media (min-width: 900px) {
-  .row {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .row.triple {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
+.brand,
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 0.9rem;
 }
 
-@media (max-width: 899px) {
-  .row.triple {
-    grid-template-columns: 1fr;
-  }
+.banner {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.86rem;
 }
 
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px;
-  min-height: 280px;
-}
-
-.panel.compact {
-  min-height: 180px;
-}
-
-.panel.seq {
+  border-radius: 10px;
+  padding: 10px 12px;
   min-height: 0;
-  margin-bottom: 16px;
+  overflow: auto;
 }
 
 .panel h2 {
-  margin: 0 0 10px;
-  font-size: 1rem;
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.watchlist {
+  overflow: auto;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.3fr);
+  gap: 8px;
+  min-height: 0;
+}
+
+.candle-strip {
+  min-height: 0;
+}
+
+.candle {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .status {
@@ -96,56 +107,54 @@ code {
   flex-wrap: wrap;
   gap: 8px 14px;
   align-items: center;
-  margin-bottom: 16px;
   font-size: 0.9rem;
 }
 
-.dot {
+.dot,
+.pip {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   display: inline-block;
-  margin-right: 6px;
 }
 
-.dot.live {
+.dot {
+  margin-right: 2px;
+}
+
+.pip {
+  margin-right: 8px;
+}
+
+.dot.live,
+.pip.live {
   background: var(--bid);
 }
 
-.dot.wait {
+.dot.wait,
+.pip.wait {
   background: var(--warn);
 }
 
-.dot.err {
+.dot.err,
+.pip.err {
   background: var(--ask);
 }
 
-.spread {
+.spread,
+.muted {
   color: var(--muted);
-  font-variant-numeric: tabular-nums;
 }
 
 .warn {
   color: var(--warn);
 }
 
-.muted {
-  color: var(--muted);
-}
-
-.toggle {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  color: var(--text);
-  font-size: 0.9rem;
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
   font-variant-numeric: tabular-nums;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
 }
 
 th,
@@ -164,6 +173,24 @@ th {
   font-weight: 500;
 }
 
+.watchlist tbody tr {
+  cursor: pointer;
+}
+
+.watchlist tbody tr:hover,
+.watchlist tbody tr.selected {
+  background: var(--selected);
+}
+
+.watchlist a {
+  color: #8cb4ff;
+  text-decoration: none;
+}
+
+.watchlist a:hover {
+  text-decoration: underline;
+}
+
 .bid {
   color: var(--bid);
 }
@@ -174,35 +201,28 @@ th {
 
 .empty {
   color: var(--muted);
-  padding: 24px 4px;
+  padding: 18px 4px;
+  margin: 0;
 }
 
 .error {
   border-color: #5a2a32;
   color: #ffc1c7;
-  min-height: 0;
-  margin-bottom: 16px;
+  background: #1a0f12;
 }
 
-.status-list {
-  margin: 0;
-  padding-left: 18px;
-  color: var(--text);
-  line-height: 1.5;
-}
+@media (max-width: 899px) {
+  body {
+    overflow: auto;
+  }
 
-.stack {
-  display: grid;
-  gap: 6px;
-}
+  .terminal {
+    height: auto;
+    min-height: 100%;
+    grid-template-rows: auto;
+  }
 
-.candle {
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-
-pre {
-  margin: 0;
-  overflow: auto;
+  .workspace {
+    grid-template-columns: 1fr;
+  }
 }
