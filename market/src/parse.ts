@@ -49,8 +49,11 @@ export type FiveMinuteCandle = {
   volume: number;
 };
 
-export const RAW_CANDLE_LIMIT = 360;
+export type OhlcBar = FiveMinuteCandle;
+
+export const RAW_CANDLE_LIMIT = 1440;
 export const FIVE_MINUTE_LIMIT = 72;
+export const CANDLE_PAGE = 300;
 export const CANDLES_URL = "/coinbase-api/api/v3/brokerage/market/products";
 
 type FeedPayload = {
@@ -112,16 +115,26 @@ export function applyRawCandles(map: Record<string, Candle[]>, payload: FeedPayl
 }
 
 export function toFiveMinuteCandles(rows: Candle[]): FiveMinuteCandle[] {
-  const buckets = new Map<number, FiveMinuteCandle>();
+  return bucketCandles(rows, 300, FIVE_MINUTE_LIMIT);
+}
+
+export function bucketCandles(
+  rows: Array<Candle | OhlcBar>,
+  periodSeconds: number,
+  limit = 400,
+): OhlcBar[] {
+  const period = Math.max(1, periodSeconds);
+  const buckets = new Map<number, OhlcBar>();
   for (const row of rows) {
     const start = Number(row.start);
     if (!Number.isFinite(start)) continue;
-    const bucket = Math.floor(start / 300) * 300;
+    const bucket = Math.floor(start / period) * period;
     const open = Number(row.open);
     const high = Number(row.high);
     const low = Number(row.low);
     const close = Number(row.close);
     const volume = Number(row.volume);
+    if (![open, high, low, close].every(Number.isFinite)) continue;
     const existing = buckets.get(bucket);
     if (!existing) {
       buckets.set(bucket, { start: bucket, open, high, low, close, volume: volume || 0 });
@@ -132,7 +145,7 @@ export function toFiveMinuteCandles(rows: Candle[]): FiveMinuteCandle[] {
     existing.close = close;
     existing.volume += volume || 0;
   }
-  return [...buckets.values()].sort((a, b) => a.start - b.start).slice(-FIVE_MINUTE_LIMIT);
+  return [...buckets.values()].sort((a, b) => a.start - b.start).slice(-limit);
 }
 
 export function mergeFiveMinuteBars(
@@ -169,15 +182,45 @@ export async function fetchFiveMinuteHistory(
   limit = FIVE_MINUTE_LIMIT,
   fetcher: typeof fetch = fetch,
 ): Promise<FiveMinuteCandle[]> {
-  const url = `${CANDLES_URL}/${encodeURIComponent(productId)}/candles?granularity=FIVE_MINUTE&limit=${limit}`;
-  const response = await fetcher(url);
-  if (!response.ok) throw new Error(`candles HTTP ${response.status}`);
-  const data = (await response.json()) as { candles?: Array<Record<string, string>> };
-  const bars = (data.candles || [])
-    .map((row) => asFiveMinuteCandle(row))
-    .filter((bar): bar is FiveMinuteCandle => bar !== null)
-    .sort((a, b) => a.start - b.start);
-  return bars.slice(-limit);
+  const end = Math.floor(Date.now() / 1000);
+  return fetchCandleHistory({
+    productId,
+    granularity: "FIVE_MINUTE",
+    start: end - limit * 300,
+    end,
+    fetcher,
+  });
+}
+
+export async function fetchCandleHistory(options: {
+  productId: string;
+  granularity: string;
+  start: number;
+  end: number;
+  fetcher?: typeof fetch;
+}): Promise<OhlcBar[]> {
+  const fetcher = options.fetcher || fetch;
+  const found = new Map<number, OhlcBar>();
+  let cursorEnd = options.end;
+  for (let page = 0; page < 8; page += 1) {
+    const url = new URL(`${CANDLES_URL}/${encodeURIComponent(options.productId)}/candles`, "http://local");
+    url.searchParams.set("granularity", options.granularity);
+    url.searchParams.set("start", String(options.start));
+    url.searchParams.set("end", String(cursorEnd));
+    url.searchParams.set("limit", String(CANDLE_PAGE));
+    const response = await fetcher(`${CANDLES_URL}/${encodeURIComponent(options.productId)}/candles${url.search}`);
+    if (!response.ok) throw new Error(`candles HTTP ${response.status}`);
+    const data = (await response.json()) as { candles?: Array<Record<string, string>> };
+    const pageBars = (data.candles || [])
+      .map((row) => asFiveMinuteCandle(row))
+      .filter((bar): bar is OhlcBar => bar !== null);
+    if (!pageBars.length) break;
+    for (const bar of pageBars) found.set(bar.start, bar);
+    const oldest = Math.min(...pageBars.map((bar) => bar.start));
+    if (oldest <= options.start || pageBars.length < CANDLE_PAGE) break;
+    cursorEnd = oldest - 1;
+  }
+  return [...found.values()].sort((a, b) => a.start - b.start);
 }
 
 export function applyStatus(map: Record<string, ProductStatus>, payload: FeedPayload): boolean {

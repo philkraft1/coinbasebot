@@ -28,3 +28,21 @@ test("layoutCandleChart is empty-safe", () => {
   assert.deepEqual(layout.bars, []);
   assert.equal(Number.isFinite(layout.min), true);
 });
+
+test("layoutCandleChart stays finite with overlays and an RSI pane", () => {
+  const bars = [
+    { start: 300, open: 100, high: 110, low: 90, close: 105, volume: 2 },
+    { start: 600, open: 105, high: 108, low: 95, close: 96, volume: 1 },
+  ];
+  const layout = layoutCandleChart(bars, 1000, 480, 300, {
+    overlays: [{ id: "sma", className: "sma20", values: [null, 100] }],
+    volSma: [null, 1.5],
+    rsi: [null, 55],
+    macd: null,
+  });
+  assert.ok(layout.overlays[0].points.includes(","));
+  assert.ok(layout.rsi);
+  for (const bar of layout.bars) {
+    assert.equal(Number.isFinite(bar.x), true);
+  }
+});
