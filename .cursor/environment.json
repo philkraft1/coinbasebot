@@ -1,0 +1,4 @@
+{
+  "name": "coinbasebot",
+  "install": "npm install --ignore-scripts\nnpm install --prefix market"
+}

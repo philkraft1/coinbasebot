@@ -44,6 +44,11 @@ below are only the non-obvious caveats for running it in a headless cloud VM.
   root `postinstall` (`scripts/patch-awal-pkg.mjs`) only patches a local file and
   does not download Electron.
 
+### Cloud Agent install script
+The committed install script is in `.cursor/environment.json`. It is the
+source of truth for future Cloud Agents on this revision (it wins over a
+dashboard-saved personal/team environment).
+
 ### Installing root deps (non-obvious)
 - The root `postinstall` (`scripts/patch-awal-pkg.mjs`) is **not idempotent**: it
   succeeds on a fresh `node_modules` but exits non-zero if `awal` is already
