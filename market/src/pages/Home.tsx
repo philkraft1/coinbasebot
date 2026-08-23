@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { LandingCharts } from "./LandingCharts";
 
 export function Home() {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ export function Home() {
           </Link>
         )}
       </div>
+      <LandingCharts />
     </main>
   );
 }
