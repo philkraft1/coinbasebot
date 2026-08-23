@@ -1,6 +1,5 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { WalletButton } from "./WalletButton";
 
 export function NavBar() {
   const { user, logout } = useAuth();
@@ -17,7 +16,6 @@ export function NavBar() {
           Home
         </NavLink>
         <NavLink to="/spot">Spot</NavLink>
-        <WalletButton />
         {user ? (
           <span className="nav-user">
             <span className="muted">{user.username}</span>
