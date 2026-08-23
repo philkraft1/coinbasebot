@@ -16,6 +16,8 @@ const SPECS = [
   { productId: "LINK-USD", name: "Chainlink", seed: 41, start: 18.4, step: 0.12 },
 ] as const;
 
+export const LANDING_PRODUCTS = SPECS.map((spec) => spec.productId);
+
 function rng(seed: number) {
   let s = seed % 2147483647;
   if (s <= 0) s += 2147483646;

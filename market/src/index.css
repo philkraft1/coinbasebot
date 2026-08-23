@@ -94,7 +94,7 @@ body {
 }
 
 .page.home {
-  max-width: 1100px;
+  max-width: 1180px;
 }
 
 .page h1 {
@@ -176,6 +176,13 @@ body {
 
 .showcase {
   margin-top: 36px;
+}
+
+.showcase-split {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.15fr);
+  gap: 16px;
+  align-items: start;
 }
 
 .showcase-table {
@@ -264,7 +271,55 @@ body {
   fill: var(--ask);
 }
 
-@media (max-width: 799px) {
+.stats-table {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.stats-table caption {
+  caption-side: top;
+  text-align: left;
+  color: var(--text);
+  font-size: 0.95rem;
+  padding: 0 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 8px 7px;
+  text-align: right;
+}
+
+.stats-table th:first-child,
+.stats-table td:first-child {
+  text-align: left;
+}
+
+.stats-table tbody tr + tr td {
+  border-top: 1px solid var(--line);
+}
+
+.stats-table a {
+  color: #8cb4ff;
+  text-decoration: none;
+}
+
+.stats-table a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 899px) {
+  .showcase-split {
+    grid-template-columns: 1fr;
+  }
+
   .showcase-table,
   .showcase-table tbody,
   .showcase-table tr,
