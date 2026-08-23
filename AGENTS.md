@@ -34,8 +34,8 @@ below are only the non-obvious caveats for running it in a headless cloud VM.
 ### Tests / typecheck / lint
 - Tests: `npm test` (root scripts, `market/src/*.test.ts`, and `server/**/*.test.ts`).
   Auth API tests use ephemeral PGlite; they do not need AWS or Neon.
-- UI typecheck: `npx tsc --noEmit -p market/tsconfig.json`.
-- Auth API typecheck: `npx tsc --noEmit -p server/tsconfig.json`.
+- UI typecheck: `npm run typecheck:market`.
+- Auth API typecheck: `npm run typecheck:server`.
 - There is **no ESLint/Prettier config** in this repo; "lint" is effectively the
   TypeScript typecheck above.
 

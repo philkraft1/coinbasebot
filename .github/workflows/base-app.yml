@@ -35,9 +35,9 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Typecheck market
-        run: npx tsc --noEmit -p market/tsconfig.json
+        run: npm run typecheck:market
       - name: Typecheck auth API
-        run: npx tsc --noEmit -p server/tsconfig.json
+        run: npm run typecheck:server
       - name: Build market
         run: npm run build --prefix market
       - name: Validate Base App artifacts
