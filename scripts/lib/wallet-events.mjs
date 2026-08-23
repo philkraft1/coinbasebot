@@ -78,9 +78,10 @@ export async function ensureWalletAppRole(pool) {
     return { created: false, password: null };
   }
   const password = randomBytes(24).toString("base64url");
-  const { rows } = await pool.query(`select format('create role wallet_app login password %L', $1) as sql`, [
-    password,
-  ]);
+  const { rows } = await pool.query(
+    `select format('create role wallet_app login password %L', $1::text) as sql`,
+    [password],
+  );
   await pool.query(rows[0].sql);
   return { created: true, password };
 }
