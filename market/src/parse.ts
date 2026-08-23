@@ -32,6 +32,7 @@ export type Candle = {
 
 export type ProductStatus = {
   product_id: string;
+  id?: string;
   status?: string;
   trading_disabled?: boolean;
   product_type?: string;
@@ -134,7 +135,9 @@ export function applyStatus(map: Record<string, ProductStatus>, payload: FeedPay
   if (payload.channel !== "status") return false;
   for (const event of payload.events || []) {
     for (const product of event.products || []) {
-      if (product.product_id) map[product.product_id] = product;
+      const id = product.product_id || product.id;
+      if (!id) continue;
+      map[id] = { ...product, product_id: id };
     }
   }
   return true;

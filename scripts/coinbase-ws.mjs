@@ -197,9 +197,11 @@ function applyStatus(payload) {
   if (payload.channel !== "status") return false;
   for (const event of payload.events || []) {
     for (const product of event.products || []) {
-      productStatus.set(product.product_id, product);
+      const id = product.product_id || product.id;
+      if (!id) continue;
+      productStatus.set(id, product);
       const disabled = product.trading_disabled ? " trading_disabled" : "";
-      console.log(`[status] ${product.product_id}  ${product.status ?? "unknown"}${disabled}`);
+      console.log(`[status] ${id}  ${product.status ?? "unknown"}${disabled}`);
     }
   }
   return true;
@@ -289,7 +291,7 @@ ws.addEventListener("message", (event) => {
     lastHeartbeat = observed.heartbeat;
     console.log(`[heartbeats] counter=${lastHeartbeat.counter}  ${lastHeartbeat.currentTime}`);
   }
-  if (observed.resubscribeLevel2) resubscribeLevel2(ws);
+  if (observed.resubscribeLevel2 && channels.includes("level2")) resubscribeLevel2(ws);
 
   if (applyTicker(payload)) return;
   if (applyTrades(payload)) return;

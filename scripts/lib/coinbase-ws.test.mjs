@@ -54,11 +54,13 @@ test("fresh JWT on every subscribe when credentials are present", () => {
 
 test("sequence and heartbeat gaps; level2 gap asks for resubscribe", () => {
   const tracker = createFeedTracker();
-  const first = tracker.observe({ channel: "l2_data", sequence_num: 3 });
+  const first = tracker.observe({ channel: "subscriptions", sequence_num: 0 });
   assert.equal(first.resubscribeLevel2, false);
+  const contiguous = tracker.observe({ channel: "status", sequence_num: 1 });
+  assert.equal(contiguous.gaps.length, 0);
   const gap = tracker.observe({ channel: "l2_data", sequence_num: 7 });
   assert.equal(gap.resubscribeLevel2, true);
-  assert.equal(gap.gaps[0].expected, 4);
+  assert.equal(gap.gaps[0].expected, 2);
   assert.equal(gap.gaps[0].received, 7);
 
   tracker.observe({

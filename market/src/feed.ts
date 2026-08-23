@@ -30,7 +30,9 @@ function asCounter(value: unknown): number | null {
  * A gap means frames were missed. For level2, the local book may be stale.
  */
 export function createFeedTracker() {
-  const lastSequence = new Map<string, number>();
+  /** Connection-wide: Coinbase increments `sequence_num` across every channel. */
+  let lastSequence: number | null = null;
+  const lastByChannel = new Map<string, number>();
   let lastHeartbeatCounter: number | null = null;
 
   return {
@@ -44,18 +46,18 @@ export function createFeedTracker() {
       let resubscribeLevel2 = false;
       let heartbeat: HeartbeatTick | null = null;
 
-      if (payload && typeof payload.sequence_num === "number" && payload.channel) {
-        const last = lastSequence.get(payload.channel);
-        if (last !== undefined && payload.sequence_num !== last + 1) {
+      if (payload && typeof payload.sequence_num === "number") {
+        if (lastSequence !== null && payload.sequence_num !== lastSequence + 1) {
           gaps.push({
             kind: "sequence",
-            channel: payload.channel,
-            expected: last + 1,
+            channel: payload.channel || "unknown",
+            expected: lastSequence + 1,
             received: payload.sequence_num,
           });
-          if (LEVEL2_FEED_CHANNELS.has(payload.channel)) resubscribeLevel2 = true;
+          resubscribeLevel2 = true;
         }
-        lastSequence.set(payload.channel, payload.sequence_num);
+        lastSequence = payload.sequence_num;
+        if (payload.channel) lastByChannel.set(payload.channel, payload.sequence_num);
       }
 
       if (payload?.channel === "heartbeats") {
@@ -82,12 +84,13 @@ export function createFeedTracker() {
     },
     reset(channel?: string) {
       if (channel) {
-        lastSequence.delete(channel);
+        lastByChannel.delete(channel);
         if (channel === "level2" || LEVEL2_FEED_CHANNELS.has(channel)) {
-          for (const name of LEVEL2_FEED_CHANNELS) lastSequence.delete(name);
+          for (const name of LEVEL2_FEED_CHANNELS) lastByChannel.delete(name);
         }
       } else {
-        lastSequence.clear();
+        lastSequence = null;
+        lastByChannel.clear();
       }
     },
     resetHeartbeat() {
@@ -95,7 +98,8 @@ export function createFeedTracker() {
     },
     snapshot() {
       return {
-        sequences: Object.fromEntries(lastSequence),
+        lastSequence,
+        sequences: Object.fromEntries(lastByChannel),
         heartbeatCounter: lastHeartbeatCounter,
       };
     },

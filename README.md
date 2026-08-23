@@ -48,7 +48,7 @@ Public channels reject most `-USDC` product IDs. The exceptions are `USDT-USDC` 
 | `heartbeats` | no | yes | Always paired. Watch `heartbeat_counter` for gaps. |
 | `ticker` | no | yes | Price, 24h change, best bid/ask |
 | `ticker_batch` | no | no | CLI only |
-| `level2` | no | yes | Inbound frames use channel `l2_data`. A `sequence_num` gap resubscribes. |
+| `level2` | no | yes | Inbound frames use channel `l2_data`. A connection-wide `sequence_num` gap resubscribes. |
 | `market_trades` | no | yes | Prints |
 | `candles` | no | yes | Latest bars, rolled into 5-minute OHLC |
 | `status` | no | yes | Product online / trading disabled |

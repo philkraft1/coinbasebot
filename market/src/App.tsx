@@ -416,9 +416,9 @@ export function App() {
           <>
             <p className="muted">
               {Object.entries(sequences).length
-                ? Object.entries(sequences)
+                ? `conn #${trackerRef.current.snapshot().lastSequence ?? "—"} · ${Object.entries(sequences)
                     .map(([channel, num]) => `${channel} #${num}`)
-                    .join(" · ")
+                    .join(" · ")}`
                 : "No sequence numbers yet."}
             </p>
             {gaps.length > 0 ? (
