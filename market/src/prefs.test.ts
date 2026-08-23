@@ -29,5 +29,5 @@ test("normalizeChartPrefs falls back on garbage input", () => {
   assert.equal(prefs.studies.rsi, DEFAULT_PREFS.studies.rsi);
   assert.equal(prefs.studies.rsiPeriod, 400);
   assert.equal(prefs.studies.bbStd, 0.1);
-  assert.equal("constructor" in prefs.studies, false);
+  assert.equal(Object.hasOwn(prefs.studies, "constructor"), false);
 });

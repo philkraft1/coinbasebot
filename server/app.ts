@@ -84,7 +84,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<{ app: FastifyIns
   const app = Fastify({
     logger: false,
     bodyLimit: 64 * 1024,
-    trustProxy: isServerlessRuntime() ? 1 : false,
+    trustProxy: isServerlessRuntime() ? (_address: string, hop: number) => hop === 0 : false,
   });
   await app.register(cookie);
   const limiter = createRateLimiter({ windowMs: 10 * 60 * 1000, max: 10 });
@@ -103,7 +103,11 @@ export async function buildApp(opts: AppOptions = {}): Promise<{ app: FastifyIns
   });
 
   app.setErrorHandler((error, _request, reply) => {
-    const status = error.statusCode && error.statusCode < 500 ? error.statusCode : 500;
+    const statusCode =
+      error && typeof error === "object" && "statusCode" in error
+        ? Number((error as { statusCode?: unknown }).statusCode)
+        : 500;
+    const status = Number.isInteger(statusCode) && statusCode >= 400 && statusCode < 500 ? statusCode : 500;
     const message =
       status === 413
         ? "Request body is too large."
