@@ -35,6 +35,27 @@ Set **max per call $1** and **max per session $5**. Fully quit Claude Desktop an
 
 The wallet already holds **~12 USDC + 0.0004 ETH on Base**. Do not start an unattended trading loop. Claude Desktop alone cannot swap.
 
+## ETH-USD / ETH-EUR level2
+
+The Coinbase Advanced Trade subscribe for those books is:
+
+```json
+{
+  "type": "subscribe",
+  "product_ids": ["ETH-USD", "ETH-EUR"],
+  "channel": "level2"
+}
+```
+
+Do not send `"jwt": "exampleJWT"`. JWT is optional on level2 and only valid if you generate a real CDP token (2 minute expiry).
+
+```bash
+npm run market          # live books at http://127.0.0.1:43147
+npm run level2          # same feed in the terminal
+```
+
+Optional JWT: `JWT=$(node scripts/build-ws-jwt.mjs) npm run level2` after setting `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY`.
+
 ## Coinbase.com vs this wallet
 
 They are **not the same account**.

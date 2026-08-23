@@ -25,6 +25,8 @@
     "wallet:show": "node scripts/run-awal.mjs show",
     "wallet:login": "node scripts/run-awal.mjs auth login kraftcoding@gmail.com",
     "awal": "node scripts/run-awal.mjs",
+    "level2": "node scripts/level2-subscribe.mjs",
+    "market": "npm --prefix market run dev",
     "publish:github": "bash scripts/publish-to-github.sh"
   },
   "dependencies": {
