@@ -1,5 +1,5 @@
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { shortenAddress } from "./wallet.ts";
+import { shortenAddress, walletErrorMessage } from "./wallet.ts";
 
 export function WalletButton() {
   const { address, isConnected } = useAccount();
@@ -39,7 +39,7 @@ export function WalletButton() {
       </button>
       {error && (
         <span className="form-error nav-wallet-error" role="alert">
-          {error.message}
+          {walletErrorMessage(error)}
         </span>
       )}
     </span>
