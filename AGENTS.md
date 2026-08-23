@@ -28,8 +28,9 @@ below are only the non-obvious caveats for running it in a headless cloud VM.
   Production (Vercel) must set `AUTH_DATABASE_URL` + `AUTH_SESSION_SECRET`;
   PGlite is not used there and signup/login return 503 without those vars.
   Hosting, Coinbase rewrites, and Base.dev registration: `docs/base-app.md`.
-- **Base wallet:** omitted from the nav for now so Base.dev can register the
-  public HTTPS app. Charts stay ungated. Username login is unchanged.
+- **Base wallet:** the market shell wraps `WagmiProvider` (`injected` +
+  `baseAccount` on Base) and exposes Connect wallet in the nav. Charts stay
+  ungated. Wallet connections include the configured ERC-8021 Builder Code.
 
 ### Tests / typecheck / lint
 - Tests: `npm test` (root scripts, `market/src/*.test.ts`, and `server/**/*.test.ts`).

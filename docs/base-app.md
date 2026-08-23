@@ -2,7 +2,11 @@
 
 The Base App (after April 9, 2026) treats this repo as a **standard web app + wallet**. There is no MiniKit / `farcaster.json` path. Discovery is [Base.dev](https://www.base.dev).
 
-Charts stay public. Username login still saves studies. Base Account / Connect wallet is omitted for now so Base.dev can load a plain web page.
+Charts stay public. Username login still saves studies. **Connect wallet** uses
+wagmi `injected` + `baseAccount` on Base so the Base in-app browser and regular
+web users can attach a wallet. The configured Builder Code is appended to
+eligible transactions outside the Base App; Base App adds attribution
+automatically.
 
 ## Production host (Vercel)
 
@@ -69,9 +73,9 @@ This step cannot be done from the repo. After the Vercel URL is live:
 Already-registered apps do not need to re-enter metadata unless the primary URL changes.
 
 The public ERC-8021 suffix for `bc_ugqeenuu` is stored beside the project
-metadata in [`config/base-app.json`](../config/base-app.json). The current app
-does not send transactions; when transaction support returns, configure that
-suffix at the wallet/client layer so every eligible call is attributed.
+metadata in [`config/base-app.json`](../config/base-app.json). The wallet client
+applies this suffix globally, so future eligible transactions retain
+attribution without per-call configuration.
 
 ## Out of scope
 

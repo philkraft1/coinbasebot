@@ -64,7 +64,8 @@ body {
 
 .nav-brand,
 .nav-links,
-.nav-user {
+.nav-user,
+.nav-wallet {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -77,6 +78,22 @@ body {
   border-radius: 10px;
   object-fit: cover;
   border: 1px solid var(--line);
+}
+
+.nav-addr {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.wallet-btn {
+  padding: 5px 10px;
+  font-size: 0.82rem;
+}
+
+.nav-wallet-error {
+  max-width: 180px;
+  font-size: 0.72rem;
 }
 
 .nav-links a {
