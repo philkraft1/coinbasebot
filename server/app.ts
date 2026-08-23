@@ -1,6 +1,7 @@
 import cookie from "@fastify/cookie";
-import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { hashPassword, normalizePassword, normalizeUsername, verifyPassword } from "./lib/credentials.ts";
+import { cookieSecure, productionAuthError } from "./lib/runtime.ts";
 import { createRateLimiter } from "./lib/rate-limit.ts";
 import { sanitizePrefs } from "./lib/prefs.ts";
 import { readSession, SESSION_COOKIE, SESSION_TTL_SEC, signSession, type SessionUser } from "./lib/session.ts";
@@ -27,14 +28,30 @@ async function currentUser(request: FastifyRequest): Promise<SessionUser | null>
   return readSession(request.cookies[SESSION_COOKIE]);
 }
 
-function cookieOpts() {
+export function cookieOpts() {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
     path: "/",
     maxAge: SESSION_TTL_SEC,
-    secure: process.env.AUTH_COOKIE_SECURE === "1",
+    secure: cookieSecure(),
   };
+}
+
+function rejectIfAuthOffline(store: AuthStore, reply: FastifyReply): boolean {
+  const production = productionAuthError();
+  if (production) {
+    void reply.code(503).send({ error: production });
+    return true;
+  }
+  if (store.kind === "unavailable") {
+    void reply.code(503).send({
+      error:
+        "Accounts are not configured. Set AUTH_DATABASE_URL to encrypted RDS or a dedicated Neon database — not wallet DATABASE_URL.",
+    });
+    return true;
+  }
+  return false;
 }
 
 export async function buildApp(opts: AppOptions = {}): Promise<{ app: FastifyInstance; store: AuthStore }> {
@@ -47,6 +64,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<{ app: FastifyIns
   app.get("/api/health", async () => ({ ok: true, store: store.kind }));
 
   app.post("/api/signup", async (request, reply) => {
+    if (rejectIfAuthOffline(store, reply)) return;
     if (!limiter.check(`signup:${clientKey(request)}`)) {
       return reply.code(429).send({ error: "Too many signup attempts. Try again later." });
     }
@@ -67,6 +85,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<{ app: FastifyIns
   });
 
   app.post("/api/login", async (request, reply) => {
+    if (rejectIfAuthOffline(store, reply)) return;
     if (!limiter.check(`login:${clientKey(request)}`)) {
       return reply.code(429).send({ error: "Too many login attempts. Try again later." });
     }

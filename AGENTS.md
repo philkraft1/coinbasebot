@@ -25,6 +25,11 @@ below are only the non-obvious caveats for running it in a headless cloud VM.
   at `.data/auth` (same `sql/auth.sql` schema). Do **not** point this at Neon
   `DATABASE_URL` — that database is only `wallet.events`. Encrypted RDS is
   provisioned from `infra/auth-rds.yaml` when AWS credentials are available.
+  Production (Vercel) must set `AUTH_DATABASE_URL` + `AUTH_SESSION_SECRET`;
+  PGlite is not used there and signup/login return 503 without those vars.
+  Hosting, Coinbase rewrites, and Base.dev registration: `docs/base-app.md`.
+- **Base wallet:** the market shell wraps `WagmiProvider` (`injected` +
+  `baseAccount` on Base). Charts stay public; Connect wallet is optional.
 
 ### Tests / typecheck / lint
 - Tests: `npm test` (root scripts, `market/src/*.test.ts`, and `server/**/*.test.ts`).

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Coinbasebot">
+  <rect width="512" height="512" rx="96" fill="#07090c"/>
+  <rect x="88" y="88" width="336" height="336" rx="48" fill="#121820" stroke="#243040" stroke-width="16"/>
+  <rect x="156" y="248" width="40" height="120" rx="8" fill="#3dd68c"/>
+  <rect x="236" y="176" width="40" height="192" rx="8" fill="#3dd68c"/>
+  <rect x="316" y="208" width="40" height="160" rx="8" fill="#ff6b7a"/>
+  <line x1="176" y1="220" x2="176" y2="380" stroke="#3dd68c" stroke-width="10" stroke-linecap="round"/>
+  <line x1="256" y1="148" x2="256" y2="380" stroke="#3dd68c" stroke-width="10" stroke-linecap="round"/>
+  <line x1="336" y1="176" x2="336" y2="384" stroke="#ff6b7a" stroke-width="10" stroke-linecap="round"/>
+</svg>

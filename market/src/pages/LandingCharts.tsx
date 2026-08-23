@@ -86,6 +86,7 @@ export function LandingCharts() {
           </tbody>
         </table>
 
+        <div className="stats-table-wrap">
         <table className="stats-table">
           <caption>
             <span className={`dot ${status === "live" ? "live" : status === "error" ? "err" : "wait"}`} />
@@ -127,6 +128,7 @@ export function LandingCharts() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </section>
   );

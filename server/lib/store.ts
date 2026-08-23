@@ -1,22 +1,40 @@
-import { mkdirSync, readFileSync } from "node:fs";
+import { accessSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { PGlite } from "@electric-sql/pglite";
 import pg from "pg";
+import { isServerlessRuntime } from "./runtime.ts";
 import { sanitizePrefs, type ChartPrefs } from "./prefs.ts";
 
 export type QueryResult<T = Record<string, unknown>> = { rows: T[]; rowCount: number };
 
 export type AuthStore = {
-  kind: "rds" | "pglite";
+  kind: "rds" | "pglite" | "unavailable";
   query<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<QueryResult<T>>;
   exec(text: string): Promise<void>;
   close(): Promise<void>;
 };
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
-const AUTH_SQL = join(ROOT, "sql/auth.sql");
-const AUTH_SECURITY_SQL = join(ROOT, "sql/auth-security.sql");
+const AUTH_UNAVAILABLE =
+  "Accounts need AUTH_DATABASE_URL (encrypted RDS or a dedicated Neon DB — not wallet DATABASE_URL).";
+
+function resolveSqlFile(name: string): string {
+  const candidates = [
+    join(process.cwd(), "sql", name),
+    join(dirname(fileURLToPath(import.meta.url)), "../../sql", name),
+  ];
+  for (const path of candidates) {
+    try {
+      accessSync(path);
+      return path;
+    } catch {
+      // try the next candidate — Vercel bundles cwd differently from local `server/lib`
+    }
+  }
+  return candidates[0];
+}
+
+const AUTH_SQL = resolveSqlFile("auth.sql");
+const AUTH_SECURITY_SQL = resolveSqlFile("auth-security.sql");
 
 export function normalizeAuthDatabaseUrl(raw: string): string {
   return raw
@@ -42,6 +60,7 @@ export async function applySql(store: AuthStore, filePath: string) {
 }
 
 export async function migrateStore(store: AuthStore, ownerUrl = "") {
+  if (store.kind === "unavailable") return { roleCreated: false };
   await applySql(store, AUTH_SQL);
   if (!ownerUrl || store.kind === "pglite") return { roleCreated: false };
   const { randomBytes } = await import("node:crypto");
@@ -80,8 +99,23 @@ export function createPgStore(connectionString: string): AuthStore {
   };
 }
 
-export async function createPgliteStore(dataDir = join(ROOT, ".data/auth")): Promise<AuthStore> {
+export function createUnavailableStore(): AuthStore {
+  const fail = async () => {
+    throw new Error(AUTH_UNAVAILABLE);
+  };
+  return {
+    kind: "unavailable",
+    query: fail,
+    exec: fail,
+    close: async () => {},
+  };
+}
+
+export async function createPgliteStore(
+  dataDir = join(dirname(fileURLToPath(import.meta.url)), "../../.data/auth"),
+): Promise<AuthStore> {
   mkdirSync(dataDir, { recursive: true });
+  const { PGlite } = await import("@electric-sql/pglite");
   const db = new PGlite(dataDir);
   await db.waitReady;
   return {
@@ -102,6 +136,7 @@ export async function createPgliteStore(dataDir = join(ROOT, ".data/auth")): Pro
 export async function openAuthStore(opts?: { url?: string; pgliteDir?: string }): Promise<AuthStore> {
   const url = (opts?.url ?? process.env.AUTH_DATABASE_URL ?? "").trim();
   if (url) return createPgStore(url);
+  if (isServerlessRuntime()) return createUnavailableStore();
   return createPgliteStore(opts?.pgliteDir);
 }
 

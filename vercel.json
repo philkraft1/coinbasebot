@@ -1,0 +1,26 @@
+{
+  "installCommand": "npm install --ignore-scripts && npm install --prefix market",
+  "buildCommand": "npm run build --prefix market",
+  "outputDirectory": "market/dist",
+  "framework": null,
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "{sql/**,server/**}",
+      "maxDuration": 15
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/coinbase-api/:path*",
+      "destination": "https://api.coinbase.com/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api$|api/|coinbase-api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
