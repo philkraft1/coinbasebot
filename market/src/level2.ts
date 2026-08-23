@@ -1,6 +1,6 @@
 export const WS_URL = "wss://advanced-trade-ws.coinbase.com";
-export const PRODUCT_IDS = ["ETH-USD", "ETH-EUR"] as const;
-export type ProductId = (typeof PRODUCT_IDS)[number];
+export const DEFAULT_PRODUCTS = ["ETH-USD", "ETH-EUR"] as const;
+export const OPTIONAL_PRODUCT = "BTC-USD";
 
 export type BookSide = Map<string, number>;
 
@@ -14,25 +14,39 @@ export type Level = {
   quantity: number;
 };
 
-export function emptyBooks(): Record<ProductId, Book> {
-  return {
-    "ETH-USD": { bids: new Map(), asks: new Map() },
-    "ETH-EUR": { bids: new Map(), asks: new Map() },
-  };
+export function emptyBook(): Book {
+  return { bids: new Map(), asks: new Map() };
 }
 
-export function subscribeMessage(channel: string, jwt?: string) {
+export function emptyBooks(products: string[]): Record<string, Book> {
+  return Object.fromEntries(products.map((id) => [id, emptyBook()]));
+}
+
+export function subscribeMessage(channel: string, products: string[], jwt?: string) {
   const message: {
-    type: "subscribe";
-    product_ids: string[];
+    type: "subscribe" | "unsubscribe";
     channel: string;
+    product_ids?: string[];
     jwt?: string;
   } = {
     type: "subscribe",
-    product_ids: [...PRODUCT_IDS],
     channel,
   };
-  if (jwt && jwt !== "exampleJWT") message.jwt = jwt;
+  if (channel !== "heartbeats") message.product_ids = [...products];
+  if (jwt && jwt !== "exampleJWT" && jwt !== "XYZ") message.jwt = jwt;
+  return message;
+}
+
+export function unsubscribeMessage(channel: string, products: string[]) {
+  const message: {
+    type: "unsubscribe";
+    channel: string;
+    product_ids?: string[];
+  } = {
+    type: "unsubscribe",
+    channel,
+  };
+  if (channel !== "heartbeats") message.product_ids = [...products];
   return message;
 }
 
@@ -49,22 +63,16 @@ type Event = {
 };
 
 export function applyLevel2Message(
-  books: Record<ProductId, Book>,
-  raw: string,
+  books: Record<string, Book>,
+  payload: { channel?: string; events?: Event[] },
 ): { changed: boolean; error?: string } {
-  let payload: { channel?: string; events?: Event[] };
-  try {
-    payload = JSON.parse(raw);
-  } catch {
-    return { changed: false, error: "Coinbase sent a non-JSON frame." };
-  }
   if (payload.channel !== "l2_data" || !Array.isArray(payload.events)) {
     return { changed: false };
   }
 
   let changed = false;
   for (const item of payload.events) {
-    if (item.product_id !== "ETH-USD" && item.product_id !== "ETH-EUR") continue;
+    if (!item.product_id || !books[item.product_id]) continue;
     const book = books[item.product_id];
     if (item.type === "snapshot") {
       book.bids = new Map();

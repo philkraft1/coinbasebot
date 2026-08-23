@@ -35,36 +35,44 @@ Set **max per call $1** and **max per session $5**. Fully quit Claude Desktop an
 
 The wallet already holds **~12 USDC + 0.0004 ETH on Base**. Do not start an unattended trading loop. Claude Desktop alone cannot swap.
 
-## ETH-USD / ETH-EUR level2
+## Advanced Trade WebSocket
 
-The Coinbase Advanced Trade subscribe for those books is:
+This is **exchange market data** on `wss://advanced-trade-ws.coinbase.com`. It is not the Agentic Wallet (`npx awal`). The Vite UI stays on public channels. `user` and `futures_balance_summary` need a **Coinbase CDP API key** for the Coinbase.com Advanced Trade account — see [.env.example](.env.example). Do not send `"jwt": "exampleJWT"` or `"XYZ"`.
 
-```json
-{
-  "type": "subscribe",
-  "product_ids": ["ETH-USD", "ETH-EUR"],
-  "channel": "level2"
-}
-```
+Always pair every other channel with `heartbeats`. Sparse books otherwise close after 60–90s. The heartbeats subscribe is `{ "type": "subscribe", "channel": "heartbeats" }` only — no `product_ids`. Same shape for `futures_balance_summary`. `user` may omit `product_ids` (all products). One user connection per account; changing products means unsubscribe and reconnect.
 
-Do not send `"jwt": "exampleJWT"`. JWT is optional on level2 and only valid if you generate a real CDP token (2 minute expiry).
+Public channels reject most `-USDC` product IDs. The exceptions are `USDT-USDC` and `EURC-USDC`.
+
+| Channel | Auth | In the Vite UI | Notes |
+| --- | --- | --- | --- |
+| `heartbeats` | no | yes | Always paired. Watch `heartbeat_counter` for gaps. |
+| `ticker` | no | yes | Price, 24h change, best bid/ask |
+| `ticker_batch` | no | no | CLI only |
+| `level2` | no | yes | Inbound frames use channel `l2_data`. A connection-wide `sequence_num` gap resubscribes. |
+| `market_trades` | no | yes | Prints |
+| `candles` | no | yes | Latest bars, rolled into 5-minute OHLC |
+| `status` | no | yes | Product online / trading disabled |
+| `user` | CDP JWT | no | First batch of fewer than 50 orders completes the open-order snapshot |
+| `futures_balance_summary` | CDP JWT | no | No `product_ids` |
 
 ```bash
-npm run market          # live books at http://127.0.0.1:43147
+npm run market          # public feed UI at http://127.0.0.1:43147
 npm run level2          # ETH-USD / ETH-EUR top of book in the terminal
-npm run ws              # official Advanced Trade JS sample (cleaned up)
+npm run ws              # default: level2 + heartbeats, pretty-printed
 ```
-
-Optional CDP JWT (do not paste `exampleJWT` or `YOUR PRIVATE KEY` into the repo):
 
 ```bash
 copy .env.example .env   # then put your real key name + EC private key in .env
-npm run ws -- --channel level2 --products ETH-USD,ETH-EUR
 npm run ws -- --channel ticker --products BTC-USD
+npm run ws -- --channels ticker,level2,market_trades --products ETH-USD,ETH-EUR
+npm run ws -- --channel candles --products ETH-USD
+npm run ws -- --channel status --products ETH-USD,ETH-EUR
+npm run ws -- --channel user
+npm run ws -- --channel futures_balance_summary
 npm run ws -- --log feed.jsonl
 ```
 
-`scripts/coinbase-ws.mjs` is the docs JS example without the 5-second BTC-USD unsubscribe and without writing `Output1.txt` unless you pass `--log`. Public channels work with no key. The `user` channel requires a real CDP JWT.
+`scripts/coinbase-ws.mjs` signs a **fresh JWT** on every subscribe/unsubscribe when `.env` has a real CDP key. It never writes `Output1.txt` unless you pass `--log`. Public channels work with no key.
 
 ## Coinbase.com vs this wallet
 
@@ -161,7 +169,7 @@ Do not paste Linux paths (`/home/ubuntu/...`) into Claude on Windows. Fully quit
 
 ## Cursor (this repo)
 
-[`.cursor/mcp.json`](.cursor/mcp.json) starts Payments MCP via [`scripts/run-payments-mcp.mjs`](scripts/run-payments-mcp.mjs). MCP still cannot swap; Cursor uses the skill + `awal` for trades.
+[`.cursor/mcp.json`](.cursor/mcp.json) starts Payments MCP via [`scripts/run-payments-mcp.mjs`](scripts/run-payments-mcp.mjs) and the remote [Neon MCP](https://mcp.neon.tech/mcp) (`npx add-mcp https://mcp.neon.tech/mcp`). Claude Code reads the same Neon entry from [`.mcp.json`](.mcp.json). Neon uses OAuth the first time you connect — no API key is committed. MCP still cannot swap; Cursor uses the skill + `awal` for trades.
 
 ```bash
 npm run mcp:install
