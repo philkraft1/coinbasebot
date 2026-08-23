@@ -72,7 +72,7 @@ type FeedPayload = {
 
 export function feedError(payload: FeedPayload): string | null {
   if (payload.type === "error") {
-    return payload.message || payload.reason || "Coinbase returned an error frame.";
+    return "Coinbase rejected the market feed request.";
   }
   return null;
 }

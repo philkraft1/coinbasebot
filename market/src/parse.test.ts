@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bucketCandles, mergeFiveMinuteBars, toFiveMinuteCandles } from "./parse.ts";
+import { bucketCandles, feedError, mergeFiveMinuteBars, toFiveMinuteCandles } from "./parse.ts";
 
 test("toFiveMinuteCandles merges 1-minute rows into one 5-minute bar", () => {
   const bars = toFiveMinuteCandles([
@@ -39,4 +39,12 @@ test("mergeFiveMinuteBars lets live bars replace history on the same start", () 
   assert.equal(merged.length, 1);
   assert.equal(merged[0].close, 2.5);
   assert.equal(merged[0].volume, 4);
+});
+
+test("feedError never renders untrusted exchange text", () => {
+  assert.equal(
+    feedError({ type: "error", message: "<script>fake wallet warning</script>" }),
+    "Coinbase rejected the market feed request.",
+  );
+  assert.equal(feedError({ type: "snapshot" }), null);
 });

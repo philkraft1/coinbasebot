@@ -32,7 +32,7 @@ function Shell() {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>

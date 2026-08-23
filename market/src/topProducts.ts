@@ -1,5 +1,6 @@
 /** Public-channel exceptions among `-USDC` pairs (same rule as the CLI feed). */
 export const USDC_ALLOWED_PUBLIC = new Set(["USDT-USDC", "EURC-USDC"]);
+export const PRODUCT_ID_RE = /^[A-Z0-9]{2,12}-[A-Z0-9]{2,12}$/;
 
 export const FALLBACK_TOP_USD = [
   "BTC-USD",
@@ -36,7 +37,7 @@ export function quoteVolume(product: CatalogProduct): number {
 
 export function isPublicUsdSpot(product: CatalogProduct): boolean {
   const id = (product.product_id || "").toUpperCase();
-  if (!id) return false;
+  if (!PRODUCT_ID_RE.test(id)) return false;
   if (product.trading_disabled || product.is_disabled) return false;
   if (product.product_type && product.product_type.toUpperCase() !== "SPOT") return false;
   if (id.endsWith("-USDC")) return USDC_ALLOWED_PUBLIC.has(id);
@@ -48,7 +49,7 @@ export function rankTopUsdSpot(products: CatalogProduct[], limit = 10): string[]
   const ranked: string[] = [];
   const sorted = [...products].filter(isPublicUsdSpot).sort((a, b) => quoteVolume(b) - quoteVolume(a));
   for (const product of sorted) {
-    const id = product.product_id as string;
+    const id = (product.product_id as string).toUpperCase();
     if (seen.has(id)) continue;
     seen.add(id);
     ranked.push(id);
@@ -68,7 +69,7 @@ export function productsEqual(left: string[], right: string[]): boolean {
 }
 
 export function coinbaseSpotUrl(productId: string): string {
-  return `https://www.coinbase.com/advanced-trade/spot/${productId}`;
+  return `https://www.coinbase.com/advanced-trade/spot/${encodeURIComponent(productId)}`;
 }
 
 type ProductsPage = {

@@ -19,7 +19,15 @@ test("normalizeChartPrefs keeps a valid interval and product", () => {
 });
 
 test("normalizeChartPrefs falls back on garbage input", () => {
-  const prefs = normalizeChartPrefs({ interval: "tick", focusedProduct: "nope" });
+  const prefs = normalizeChartPrefs({
+    interval: "tick",
+    focusedProduct: "nope",
+    studies: { rsi: "yes", rsiPeriod: 1_000_000, bbStd: -5, constructor: true },
+  });
   assert.equal(prefs.interval, DEFAULT_PREFS.interval);
   assert.equal(prefs.focusedProduct, DEFAULT_PREFS.focusedProduct);
+  assert.equal(prefs.studies.rsi, DEFAULT_PREFS.studies.rsi);
+  assert.equal(prefs.studies.rsiPeriod, 400);
+  assert.equal(prefs.studies.bbStd, 0.1);
+  assert.equal("constructor" in prefs.studies, false);
 });

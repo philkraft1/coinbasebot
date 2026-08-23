@@ -19,6 +19,9 @@ export const wagmiConfig = createConfig({
     baseAccount({
       appName: baseApp.name,
       appLogoUrl: new URL(baseApp.iconPath, baseApp.origin).href,
+      preference: {
+        telemetry: false,
+      },
     }),
   ],
   transports: {
