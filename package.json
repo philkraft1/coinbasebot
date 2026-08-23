@@ -27,15 +27,26 @@
     "awal": "node scripts/run-awal.mjs",
     "level2": "node scripts/level2-subscribe.mjs",
     "ws": "node scripts/coinbase-ws.mjs",
-    "test": "node --experimental-strip-types --test scripts/lib/*.test.mjs market/src/*.test.ts",
+    "test": "node --experimental-strip-types --test scripts/lib/*.test.mjs market/src/*.test.ts server/*.test.ts server/lib/*.test.ts",
     "db:migrate": "node scripts/wallet-events.mjs migrate",
+    "auth": "node --experimental-strip-types server/auth-server.ts",
+    "auth:migrate": "node --experimental-strip-types server/migrate.ts",
     "events": "node scripts/wallet-events.mjs list",
     "events:record": "node scripts/wallet-events.mjs record",
     "market": "npm --prefix market run dev",
     "publish:github": "bash scripts/publish-to-github.sh"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.6",
+    "@fastify/cookie": "^11.1.2",
+    "argon2": "^0.45.1",
     "awal": "^2.12.1",
+    "fastify": "^5.12.1",
+    "jose": "^6.2.10",
     "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/pg": "^8.23.1"
   }
 }

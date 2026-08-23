@@ -1,51 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../AuthContext";
 import { layoutCandleChart } from "../chart";
 import { bucketCandles, fetchCandleHistory, mergeFiveMinuteBars, type Candle, type OhlcBar } from "../parse";
-import {
-  bollinger,
-  ema,
-  loadStudies,
-  macd,
-  rsi,
-  saveStudies,
-  sma,
-  vwap,
-  type StudyConfig,
-} from "../studies";
-import {
-  INTERVALS,
-  RANGES,
-  intervalSeconds,
-  loadChartPrefs,
-  planCandleSource,
-  rangeStartUtc,
-  saveChartPrefs,
-  type IntervalId,
-  type RangeId,
-} from "../timeframes";
+import { bollinger, ema, macd, rsi, sma, vwap, type StudyConfig } from "../studies";
+import { INTERVALS, RANGES, intervalSeconds, planCandleSource, rangeStartUtc, type IntervalId } from "../timeframes";
 
 function intervalLabel(interval: IntervalId, customMinutes: number) {
   return interval === "custom" ? `${customMinutes}m` : interval;
 }
 
 export function CandleChart({ productId, raw }: { productId: string; raw: Record<string, Candle[]> }) {
-  const [interval, setInterval] = useState<IntervalId>(() => loadChartPrefs().interval);
-  const [customMinutes, setCustomMinutes] = useState(() => loadChartPrefs().customMinutes);
-  const [range, setRange] = useState<RangeId>(() => loadChartPrefs().range);
-  const [studies, setStudies] = useState<StudyConfig>(loadStudies);
+  const { prefs, setPrefs } = useAuth();
+  const { interval, customMinutes, range, studies } = prefs;
   const [openStudies, setOpenStudies] = useState(false);
   const [history, setHistory] = useState<OhlcBar[]>([]);
   const [hint, setHint] = useState<string | null>(null);
 
   const period = intervalSeconds(interval, customMinutes);
-
-  useEffect(() => {
-    saveChartPrefs({ interval, customMinutes, range });
-  }, [interval, customMinutes, range]);
-
-  useEffect(() => {
-    saveStudies(studies);
-  }, [studies]);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,7 +78,7 @@ export function CandleChart({ productId, raw }: { productId: string; raw: Record
   );
 
   function patch(partial: Partial<StudyConfig>) {
-    setStudies((prev) => ({ ...prev, ...partial }));
+    setPrefs({ studies: { ...studies, ...partial } });
   }
 
   return (
@@ -126,11 +97,11 @@ export function CandleChart({ productId, raw }: { productId: string; raw: Record
       <div className="chart-toolbar">
         <div className="chips">
           {INTERVALS.map((id) => (
-            <button key={id} className={interval === id ? "chip on" : "chip"} onClick={() => setInterval(id)}>
+            <button key={id} className={interval === id ? "chip on" : "chip"} onClick={() => setPrefs({ interval: id })}>
               {id}
             </button>
           ))}
-          <button className={interval === "custom" ? "chip on" : "chip"} onClick={() => setInterval("custom")}>
+          <button className={interval === "custom" ? "chip on" : "chip"} onClick={() => setPrefs({ interval: "custom" })}>
             Custom
           </button>
           {interval === "custom" && (
@@ -140,7 +111,7 @@ export function CandleChart({ productId, raw }: { productId: string; raw: Record
                 min={1}
                 max={1440}
                 value={customMinutes}
-                onChange={(event) => setCustomMinutes(Number(event.target.value) || 1)}
+                onChange={(event) => setPrefs({ customMinutes: Number(event.target.value) || 1 })}
               />
               m
             </label>
@@ -148,7 +119,7 @@ export function CandleChart({ productId, raw }: { productId: string; raw: Record
         </div>
         <div className="chips">
           {RANGES.map((id) => (
-            <button key={id} className={range === id ? "chip on" : "chip"} onClick={() => setRange(id)}>
+            <button key={id} className={range === id ? "chip on" : "chip"} onClick={() => setPrefs({ range: id })}>
               {id}
             </button>
           ))}

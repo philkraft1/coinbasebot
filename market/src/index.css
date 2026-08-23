@@ -28,17 +28,158 @@ body,
 
 body {
   padding: 0;
+}
+
+.app-shell {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell.mode-spot {
   overflow: hidden;
 }
 
+.app-shell.mode-page {
+  overflow: auto;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.nav-brand,
+.nav-links,
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--text);
+  background: var(--selected);
+}
+
+.text-btn {
+  background: none;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px 8px;
+  font: inherit;
+}
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+}
+
+.page h1 {
+  margin: 8px 0 12px;
+  font-size: 2rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.lede {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn.primary {
+  background: #1b3a2a;
+  border-color: #2f6a4a;
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+  max-width: 360px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.86rem;
+}
+
+.auth-form input {
+  background: #0d1218;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-error {
+  margin: 0;
+  color: #ffc1c7;
+}
+
 .terminal {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-rows: auto auto minmax(220px, 34%) auto minmax(0, 1fr);
   gap: 8px;
   padding: 8px;
 }
 
+.feedbar,
 .topbar {
   display: flex;
   justify-content: space-between;

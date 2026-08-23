@@ -56,10 +56,13 @@ Public channels reject most `-USDC` product IDs. The exceptions are `USDT-USDC` 
 | `futures_balance_summary` | CDP JWT | no | No `product_ids` |
 
 ```bash
-npm run market          # public feed UI at http://127.0.0.1:43147
+npm run auth            # username accounts + prefs API at http://127.0.0.1:43148
+npm run market          # public feed UI at http://127.0.0.1:43147  (Home / Spot / Login)
 npm run level2          # ETH-USD / ETH-EUR top of book in the terminal
 npm run ws              # default: level2 + heartbeats, pretty-printed
 ```
+
+The Vite UI proxies `/api` to the auth server. Start `npm run auth` before using Login / Signup. Guests can still open Spot; signed-in users save studies and chart prefs.
 
 ```bash
 copy .env.example .env   # then put your real key name + EC private key in .env
@@ -194,9 +197,27 @@ npm run skills:install   # refresh .claude/skills/agentic-wallet
 npm run wallet:status
 npm run wallet:balance
 npm run wallet:show
+npm run auth              # username signup/login + saved chart prefs
+npm run auth:migrate      # apply sql/auth.sql (RDS or local PGlite)
 npm run db:migrate        # wallet.events + RLS (needs DATABASE_URL_UNPOOLED)
 npm run events            # recent wallet events
 ```
+
+## Accounts and saved studies (RDS)
+
+Username/password accounts are stored in a **separate** Postgres database from Neon `wallet.events`. Production is encrypted Amazon RDS (KMS at rest, TLS required, master password in Secrets Manager). See [infra/README.md](infra/README.md) and [infra/auth-rds.yaml](infra/auth-rds.yaml).
+
+```bash
+# Local / cloud VM (no AWS): omit AUTH_DATABASE_URL — uses .data/auth
+npm run auth
+
+# Production RDS (never commit the URL)
+# AUTH_DATABASE_URL=postgresql://auth_app:...@xxx.rds.amazonaws.com:5432/coinbasebot_auth?sslmode=verify-full
+npm run auth:migrate
+npm run auth
+```
+
+Set `AUTH_SESSION_SECRET` in production. Routes: `/` Home, `/spot` charts, `/login` signup and login.
 
 ## Wallet events (Neon)
 
