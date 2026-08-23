@@ -62,11 +62,16 @@ This step cannot be done from the repo. After the Vercel URL is live:
 | Icon | `https://coinbasebot.vercel.app/icon-512.png` |
 | Screenshots | Home (`/`) and Spot (`/spot`) on a phone |
 | Category | Finance / Markets (pick the closest Base.dev category) |
-| Builder code | Your [builder code](https://docs.base.org/apps/builder-codes/builder-codes) |
+| Builder code | `bc_ugqeenuu` |
 
 4. Open that primary URL inside the Base App and share it.
 
 Already-registered apps do not need to re-enter metadata unless the primary URL changes.
+
+The public ERC-8021 suffix for `bc_ugqeenuu` is stored beside the project
+metadata in [`config/base-app.json`](../config/base-app.json). The current app
+does not send transactions; when transaction support returns, configure that
+suffix at the wallet/client layer so every eligible call is attributed.
 
 ## Out of scope
 

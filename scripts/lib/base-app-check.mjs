@@ -5,6 +5,24 @@ function invariant(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+export function builderCodeSuffix(builderCode) {
+  const bytes = Buffer.from(builderCode, "utf8");
+  invariant(bytes.length > 0 && bytes.length <= 255, "Builder Code must be 1-255 bytes");
+  return `0x${bytes.toString("hex")}${bytes.length.toString(16).padStart(2, "0")}00${"8021".repeat(7)}`;
+}
+
+export function validateConfig(config) {
+  invariant(/^[a-f0-9]{24}$/.test(config.appId), "Base app ID must be 24 lowercase hex characters");
+  invariant(/^bc_[a-z0-9]+$/.test(config.builderCode), "Builder Code must start with bc_");
+  invariant(
+    config.builderCodeSuffix === builderCodeSuffix(config.builderCode),
+    "Builder Code suffix does not match the configured Builder Code",
+  );
+  const origin = new URL(config.origin);
+  invariant(origin.protocol === "https:", "Base App origin must use HTTPS");
+  invariant(origin.pathname === "/", "Base App origin must not contain a path");
+}
+
 function attribute(tag, name) {
   const match = tag.match(new RegExp(`\\b${name}=["']([^"']*)["']`, "i"));
   return match?.[1] ?? null;
@@ -103,7 +121,9 @@ export function validateManifest(manifest, config) {
 
 async function readConfig(rootDir) {
   const path = resolve(rootDir, "config/base-app.json");
-  return JSON.parse(await readFile(path, "utf8"));
+  const config = JSON.parse(await readFile(path, "utf8"));
+  validateConfig(config);
+  return config;
 }
 
 async function validateAssetBuffer(buffer, asset) {

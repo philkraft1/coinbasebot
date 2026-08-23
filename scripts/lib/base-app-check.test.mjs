@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import {
+  builderCodeSuffix,
   pngDimensions,
+  validateConfig,
   validateHtmlDocument,
   validateManifest,
 } from "./base-app-check.mjs";
@@ -34,6 +36,15 @@ function validHtml() {
       <body><div id="root"></div></body>
     </html>`;
 }
+
+test("validates the Base project and ERC-8021 Builder Code config", () => {
+  assert.equal(builderCodeSuffix(config.builderCode), config.builderCodeSuffix);
+  assert.doesNotThrow(() => validateConfig(config));
+  assert.throws(
+    () => validateConfig({ ...config, builderCodeSuffix: "0xdeadbeef" }),
+    /does not match/,
+  );
+});
 
 test("validates the canonical Base App homepage metadata", () => {
   assert.doesNotThrow(() => validateHtmlDocument(validHtml(), config));
