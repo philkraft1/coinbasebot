@@ -169,7 +169,7 @@ Do not paste Linux paths (`/home/ubuntu/...`) into Claude on Windows. Fully quit
 
 ## Cursor (this repo)
 
-[`.cursor/mcp.json`](.cursor/mcp.json) starts Payments MCP via [`scripts/run-payments-mcp.mjs`](scripts/run-payments-mcp.mjs). MCP still cannot swap; Cursor uses the skill + `awal` for trades.
+[`.cursor/mcp.json`](.cursor/mcp.json) starts Payments MCP via [`scripts/run-payments-mcp.mjs`](scripts/run-payments-mcp.mjs) and the remote [Neon MCP](https://mcp.neon.tech/mcp) (`npx add-mcp https://mcp.neon.tech/mcp`). Claude Code reads the same Neon entry from [`.mcp.json`](.mcp.json). Neon uses OAuth the first time you connect — no API key is committed. MCP still cannot swap; Cursor uses the skill + `awal` for trades.
 
 ```bash
 npm run mcp:install
