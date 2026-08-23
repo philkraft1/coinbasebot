@@ -1,24 +1,15 @@
 {
-  "installCommand": "npm install --ignore-scripts && npm rebuild argon2 && npm install --prefix market",
+  "installCommand": "npm install --prefix market",
   "buildCommand": "npm run build --prefix market",
   "outputDirectory": "market/dist",
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "sql/**",
-      "maxDuration": 15
-    }
-  },
+  "framework": null,
   "rewrites": [
     {
       "source": "/coinbase-api/:path*",
       "destination": "https://api.coinbase.com/:path*"
     },
     {
-      "source": "/api/:path*",
-      "destination": "/api"
-    },
-    {
-      "source": "/((?!api$|api/|coinbase-api/).*)",
+      "source": "/((?!coinbase-api/).*)",
       "destination": "/index.html"
     }
   ]

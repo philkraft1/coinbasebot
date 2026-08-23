@@ -1,0 +1,8 @@
+api
+server
+node_modules
+.data
+*.md
+infra
+scripts
+sql
