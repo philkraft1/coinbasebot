@@ -19,11 +19,18 @@ below are only the non-obvious caveats for running it in a headless cloud VM.
   `advanced-trade-ws.coinbase.com`.
 - Vite uses `strictPort` on `43147` — it will fail to start if that port is taken
   rather than picking another one.
+- **Username accounts:** `npm run auth` listens on `127.0.0.1:43148`. The Vite
+  app proxies `/api` there. Login/signup and saved studies do nothing useful
+  unless this process is running. Omit `AUTH_DATABASE_URL` to use on-disk PGlite
+  at `.data/auth` (same `sql/auth.sql` schema). Do **not** point this at Neon
+  `DATABASE_URL` — that database is only `wallet.events`. Encrypted RDS is
+  provisioned from `infra/auth-rds.yaml` when AWS credentials are available.
 
 ### Tests / typecheck / lint
-- Tests: `npm test` (runs `node --test scripts/lib/*.test.mjs`, 11 tests, no DB or
-  network needed).
+- Tests: `npm test` (root scripts, `market/src/*.test.ts`, and `server/**/*.test.ts`).
+  Auth API tests use ephemeral PGlite; they do not need AWS or Neon.
 - UI typecheck: `npx tsc --noEmit -p market/tsconfig.json`.
+- Auth API typecheck: `npx tsc --noEmit -p server/tsconfig.json`.
 - There is **no ESLint/Prettier config** in this repo; "lint" is effectively the
   TypeScript typecheck above.
 

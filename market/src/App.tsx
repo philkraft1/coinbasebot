@@ -24,6 +24,7 @@ import { BookPanel } from "./panels/BookPanel";
 import { CandleChart } from "./panels/CandleChart";
 import { TradesPanel } from "./panels/TradesPanel";
 import { Watchlist } from "./panels/Watchlist";
+import { useAuth } from "./AuthContext";
 import { useTopUsdSpot } from "./useTopUsdSpot";
 
 type Status = "connecting" | "live" | "error";
@@ -32,11 +33,21 @@ const PUBLIC_CHANNELS = ["ticker", "market_trades", "candles", "status"] as cons
 
 export function App() {
   const { products, source } = useTopUsdSpot();
+  const { prefs, setPrefs } = useAuth();
   const [focused, setFocused] = useState(products[0]);
 
   useEffect(() => {
+    if (prefs.focusedProduct && products.includes(prefs.focusedProduct)) {
+      setFocused(prefs.focusedProduct);
+      return;
+    }
     if (!products.includes(focused)) setFocused(products[0]);
-  }, [products, focused]);
+  }, [products, focused, prefs.focusedProduct]);
+
+  function focusProduct(productId: string) {
+    setFocused(productId);
+    setPrefs({ focusedProduct: productId });
+  }
 
   const booksRef = useRef<Book>(emptyBook());
   const tickersRef = useRef<Record<string, Ticker>>({});
@@ -212,11 +223,11 @@ export function App() {
 
   return (
     <div className="terminal">
-      <header className="topbar">
+      <header className="feedbar">
         <div className="brand">
           <span className={`dot ${status === "live" ? "live" : status === "error" ? "err" : "wait"}`} />
-          <strong>Coinbase</strong>
-          <span className="muted">Top 10 USD spot · {source}</span>
+          <strong>USD spot</strong>
+          <span className="muted">Top 10 · {source}</span>
         </div>
         <div className="meta">
           <span>{focused}</span>
@@ -235,7 +246,7 @@ export function App() {
         focused={focused}
         tickers={tickers}
         statuses={statuses}
-        onFocus={setFocused}
+        onFocus={focusProduct}
       />
       <CandleChart productId={focused} raw={candles} />
       <div className="workspace">

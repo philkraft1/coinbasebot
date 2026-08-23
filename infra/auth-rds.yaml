@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Encrypted Amazon RDS PostgreSQL 16 for coinbasebot username credentials.
+  Storage encryption via a customer-managed KMS key, TLS required (rds.force_ssl),
+  master password in Secrets Manager. Separate from the Neon wallet.events database.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC that will host the credentials database
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: At least two subnets in different Availability Zones
+  AllowedCidr:
+    Type: String
+    Default: 10.0.0.0/8
+    Description: CIDR allowed to reach port 5432 (do not use 0.0.0.0/0 in production)
+  DbInstanceClass:
+    Type: String
+    Default: db.t4g.micro
+    Description: RDS instance class
+  MasterUsername:
+    Type: String
+    Default: cbadmin
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9_]*"
+    Description: RDS master username (not an application login)
+
+Resources:
+  AuthKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: coinbasebot auth RDS storage encryption
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EnableRoot
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: "*"
+          - Sid: AllowRDS
+            Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action:
+              - kms:CreateGrant
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:GenerateDataKey*
+              - kms:ReEncrypt*
+            Resource: "*"
+
+  AuthKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/coinbasebot-auth-rds
+      TargetKeyId: !Ref AuthKmsKey
+
+  AuthDbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: coinbasebot auth RDS subnets
+      SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: App
+          Value: coinbasebot-auth
+
+  AuthDbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: TLS Postgres access to coinbasebot auth RDS
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: !Ref AllowedCidr
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: App
+          Value: coinbasebot-auth
+
+  AuthDbParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Force SSL/TLS for coinbasebot auth RDS
+      Family: postgres16
+      Parameters:
+        rds.force_ssl: "1"
+
+  AuthDbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: coinbasebot/auth/rds-master
+      Description: Master credentials for the encrypted auth RDS instance
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username":"${MasterUsername}"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\'
+      KmsKeyId: !Ref AuthKmsKey
+
+  AuthDb:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: coinbasebot-auth
+      DBName: coinbasebot_auth
+      Engine: postgres
+      EngineVersion: "16"
+      DBInstanceClass: !Ref DbInstanceClass
+      AllocatedStorage: 20
+      StorageType: gp3
+      StorageEncrypted: true
+      KmsKeyId: !GetAtt AuthKmsKey.Arn
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Join
+        - ""
+        - - "{{resolve:secretsmanager:"
+          - !Ref AuthDbSecret
+          - ":SecretString:password}}"
+      DBSubnetGroupName: !Ref AuthDbSubnetGroup
+      VPCSecurityGroups:
+        - !Ref AuthDbSecurityGroup
+      DBParameterGroupName: !Ref AuthDbParameterGroup
+      PubliclyAccessible: false
+      MultiAZ: false
+      BackupRetentionPeriod: 7
+      PreferredBackupWindow: "07:00-08:00"
+      PreferredMaintenanceWindow: "sun:08:00-sun:09:00"
+      EnableIAMDatabaseAuthentication: true
+      DeletionProtection: true
+      CopyTagsToSnapshot: true
+      Tags:
+        - Key: App
+          Value: coinbasebot-auth
+
+  AuthDbSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref AuthDbSecret
+      TargetId: !Ref AuthDb
+      TargetType: AWS::RDS::DBInstance
+
+Outputs:
+  EndpointAddress:
+    Description: RDS hostname (connect with sslmode=verify-full)
+    Value: !GetAtt AuthDb.Endpoint.Address
+  EndpointPort:
+    Value: !GetAtt AuthDb.Endpoint.Port
+  DatabaseName:
+    Value: coinbasebot_auth
+  MasterSecretArn:
+    Description: Secrets Manager ARN for the master username/password
+    Value: !Ref AuthDbSecret
+  KmsKeyArn:
+    Value: !GetAtt AuthKmsKey.Arn
+  SecurityGroupId:
+    Value: !Ref AuthDbSecurityGroup

@@ -11,4 +11,6 @@ coinbasebot/
 *.pem
 *.key
 .gh/
+.data/
+market/dist/
 

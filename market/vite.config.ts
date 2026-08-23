@@ -8,6 +8,10 @@ export default defineConfig({
     port: 43147,
     strictPort: true,
     proxy: {
+      "/api": {
+        target: "http://127.0.0.1:43148",
+        changeOrigin: true,
+      },
       "/coinbase-api": {
         target: "https://api.coinbase.com",
         changeOrigin: true,
