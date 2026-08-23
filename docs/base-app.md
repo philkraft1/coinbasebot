@@ -32,6 +32,7 @@ This step cannot be done from the repo. After the Vercel URL is live:
 
 1. Open [https://www.base.dev](https://www.base.dev) and create a project.
 2. Set **primary URL** to the production HTTPS origin (no trailing path), for example `https://coinbasebot.vercel.app`.
+   The homepage `<head>` includes `<meta name="base:app_id" content="6a8a941d39d7d26f4bad1867" />` for Base.dev ownership verification.
 3. Fill metadata:
 
 | Field | Suggested value |
