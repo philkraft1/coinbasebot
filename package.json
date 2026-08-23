@@ -27,7 +27,7 @@
     "awal": "node scripts/run-awal.mjs",
     "level2": "node scripts/level2-subscribe.mjs",
     "ws": "node scripts/coinbase-ws.mjs",
-    "test": "node --test scripts/lib/*.test.mjs",
+    "test": "node --experimental-strip-types --test scripts/lib/*.test.mjs market/src/*.test.ts",
     "db:migrate": "node scripts/wallet-events.mjs migrate",
     "events": "node scripts/wallet-events.mjs list",
     "events:record": "node scripts/wallet-events.mjs record",
