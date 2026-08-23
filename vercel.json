@@ -1,12 +1,68 @@
 {
-  "installCommand": "npm install --prefix market",
+  "installCommand": "npm ci --prefix market",
   "buildCommand": "npm run build --prefix market",
   "outputDirectory": "market/dist",
   "framework": null,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' wss://advanced-trade-ws.coinbase.com https://mainnet.base.org https://rpc.wallet.coinbase.com https://chain-proxy.wallet.coinbase.com https://keys.coinbase.com https://cca-lite.coinbase.com; frame-src https://keys.coinbase.com https://cca-lite.coinbase.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-DNS-Prefetch-Control",
+          "value": "off"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Permitted-Cross-Domain-Policies",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "source": "/assets/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
-      "source": "/coinbase-api/:path*",
-      "destination": "https://api.coinbase.com/:path*"
+      "source": "/coinbase-api/api/v3/brokerage/market/products",
+      "destination": "https://api.coinbase.com/api/v3/brokerage/market/products"
+    },
+    {
+      "source": "/coinbase-api/api/v3/brokerage/market/products/:product/candles",
+      "destination": "https://api.coinbase.com/api/v3/brokerage/market/products/:product/candles"
     },
     {
       "source": "/((?!coinbase-api/).*)",

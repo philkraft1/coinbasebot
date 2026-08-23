@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      root-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: /market
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      market-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

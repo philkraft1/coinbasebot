@@ -23,6 +23,68 @@ export function validateConfig(config) {
   invariant(origin.pathname === "/", "Base App origin must not contain a path");
 }
 
+const REQUIRED_HEADERS = {
+  "cross-origin-opener-policy": "same-origin-allow-popups",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "x-content-type-options": "nosniff",
+  "x-dns-prefetch-control": "off",
+  "x-frame-options": "DENY",
+  "x-permitted-cross-domain-policies": "none",
+};
+
+export function validateSecurityHeaders(headers) {
+  for (const [name, expected] of Object.entries(REQUIRED_HEADERS)) {
+    const actual = headers.get(name);
+    invariant(actual === expected, `${name} must be "${expected}" (found "${actual ?? ""}")`);
+  }
+  const hsts = headers.get("strict-transport-security") ?? "";
+  invariant(hsts.includes("max-age=63072000"), "strict-transport-security must use a two-year max-age");
+  invariant(hsts.includes("includeSubDomains"), "strict-transport-security must include subdomains");
+
+  const permissions = headers.get("permissions-policy") ?? "";
+  for (const policy of ["camera=()", "microphone=()", "geolocation=()", "payment=()", "usb=()"]) {
+    invariant(permissions.includes(policy), `permissions-policy must disable ${policy.slice(0, -3)}`);
+  }
+
+  const csp = headers.get("content-security-policy") ?? "";
+  for (const directive of [
+    "default-src 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "script-src 'self' 'wasm-unsafe-eval'",
+    "wss://advanced-trade-ws.coinbase.com",
+    "https://keys.coinbase.com",
+    "upgrade-insecure-requests",
+  ]) {
+    invariant(csp.includes(directive), `content-security-policy must include ${directive}`);
+  }
+}
+
+export function validateVercelSecurityConfig(vercel) {
+  invariant(vercel.installCommand === "npm ci --prefix market", "Vercel must install from the lockfile");
+  const globalRule = vercel.headers?.find((rule) => rule.source === "/(.*)");
+  invariant(globalRule, "Vercel must apply global security headers");
+  const headers = new Headers(
+    globalRule.headers.map(({ key, value }) => [key, value]),
+  );
+  validateSecurityHeaders(headers);
+
+  const assetRule = vercel.headers?.find((rule) => rule.source === "/assets/:path*");
+  const cache = assetRule?.headers?.find(({ key }) => key.toLowerCase() === "cache-control")?.value;
+  invariant(cache?.includes("immutable"), "Hashed assets must use immutable caching");
+
+  const externalRewrites = (vercel.rewrites ?? []).filter(({ destination }) =>
+    destination.startsWith("https://api.coinbase.com"),
+  );
+  invariant(externalRewrites.length === 2, "Only two Coinbase market-data rewrites are allowed");
+  invariant(
+    externalRewrites.every(({ source }) =>
+      source.startsWith("/coinbase-api/api/v3/brokerage/market/products"),
+    ),
+    "Coinbase rewrites must be limited to public market products and candles",
+  );
+}
+
 function attribute(tag, name) {
   const match = tag.match(new RegExp(`\\b${name}=["']([^"']*)["']`, "i"));
   return match?.[1] ?? null;
@@ -144,6 +206,8 @@ export async function validateStaticBaseApp({
   distDir = "market/dist",
 } = {}) {
   const config = await readConfig(rootDir);
+  const vercel = JSON.parse(await readFile(resolve(rootDir, "vercel.json"), "utf8"));
+  validateVercelSecurityConfig(vercel);
   const outputDir = resolve(rootDir, distDir);
   const html = await readFile(resolve(outputDir, "index.html"), "utf8");
   validateHtmlDocument(html, config);
@@ -160,7 +224,7 @@ export async function validateStaticBaseApp({
 
   return {
     target: outputDir,
-    checks: 2 + config.assets.length,
+    checks: 3 + config.assets.length,
     config,
   };
 }
@@ -189,6 +253,7 @@ export async function validateLiveBaseApp(url, { rootDir = process.cwd() } = {})
   target.hash = "";
 
   const root = await fetchOk(target, "text/html");
+  validateSecurityHeaders(root.response.headers);
   validateHtmlDocument(root.buffer.toString("utf8"), config);
 
   const manifestUrl = new URL(config.manifestPath, target);
@@ -210,7 +275,7 @@ export async function validateLiveBaseApp(url, { rootDir = process.cwd() } = {})
 
   return {
     target: target.href,
-    checks: 2 + config.assets.length + config.routes.length - 1,
+    checks: 3 + config.assets.length + config.routes.length - 1,
     config,
   };
 }

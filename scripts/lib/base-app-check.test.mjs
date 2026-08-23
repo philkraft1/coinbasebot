@@ -7,10 +7,14 @@ import {
   validateConfig,
   validateHtmlDocument,
   validateManifest,
+  validateVercelSecurityConfig,
 } from "./base-app-check.mjs";
 
 const config = JSON.parse(
   await readFile(new URL("../../config/base-app.json", import.meta.url), "utf8"),
+);
+const vercel = JSON.parse(
+  await readFile(new URL("../../vercel.json", import.meta.url), "utf8"),
 );
 
 function validHtml() {
@@ -44,6 +48,16 @@ test("validates the Base project and ERC-8021 Builder Code config", () => {
     () => validateConfig({ ...config, builderCodeSuffix: "0xdeadbeef" }),
     /does not match/,
   );
+});
+
+test("validates locked installs, constrained proxy routes, and browser security headers", () => {
+  assert.doesNotThrow(() => validateVercelSecurityConfig(vercel));
+  const insecure = structuredClone(vercel);
+  insecure.rewrites[0] = {
+    source: "/coinbase-api/:path*",
+    destination: "https://api.coinbase.com/:path*",
+  };
+  assert.throws(() => validateVercelSecurityConfig(insecure), /must be limited/);
 });
 
 test("validates the canonical Base App homepage metadata", () => {
