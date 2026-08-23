@@ -1,11 +1,10 @@
 {
-  "installCommand": "npm install --ignore-scripts && npm install --prefix market",
+  "installCommand": "npm install --ignore-scripts && npm rebuild argon2 && npm install --prefix market",
   "buildCommand": "npm run build --prefix market",
   "outputDirectory": "market/dist",
-  "framework": null,
   "functions": {
     "api/index.ts": {
-      "includeFiles": "{sql/**,server/**}",
+      "includeFiles": "sql/**",
       "maxDuration": 15
     }
   },
