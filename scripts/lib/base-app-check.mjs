@@ -148,6 +148,7 @@ export async function validateStaticBaseApp({
 async function fetchOk(url, expectedType) {
   const response = await fetch(url, {
     headers: { "user-agent": "ivory-base-app-check/1.0" },
+    redirect: "manual",
     signal: AbortSignal.timeout(15_000),
   });
   invariant(response.ok, `${url} returned HTTP ${response.status}`);

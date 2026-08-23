@@ -11,7 +11,9 @@ Charts stay public. Username login still saves studies. Base Account / Connect w
 Vercel's Git integration creates a preview for feature branches and deploys
 `main` to `https://coinbasebot.vercel.app`. Do not run a second CLI deployment
 in CI. The `Base App` GitHub workflow validates every build and smoke-tests the
-exact URL reported by a successful Vercel deployment.
+exact public URL reported by a successful production deployment. SSO-protected
+preview deployments use the same artifact checks without attempting to bypass
+Vercel authentication.
 
 The current Base launch is static and does not expose `/api`; Home and Spot
 remain public, while username signup/login is unavailable in production. If the
